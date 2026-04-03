@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantiMeasure — Sign In / Register</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #3b82f6; --blue-dark: #1d4ed8; --blue-light: #60a5fa;
+      --purple: #8b5cf6; --purple-dark: #6d28d9; --purple-light: #a78bfa;
+      --glow-blue: rgba(59,130,246,0.32); --glow-purple: rgba(139,92,246,0.28);
+      --success: #22c55e; --danger: #f87171; --warning: #f59e0b;
+      --radius: 12px;
+      --font-sans: 'Space Grotesk', sans-serif;
+      --font-disp: 'Rajdhani', sans-serif;
+    }
+    html[data-theme="dark"] {
+      --bg: #070b14; --bg2: #0d1220; --bg3: rgba(13,18,32,0.88);
+      --bginp: rgba(255,255,255,0.055); --text: #e8edf8; --text2: #8b96b0;
+      --text3: #434e68; --border: rgba(59,130,246,0.2); --brd2: rgba(255,255,255,0.07);
+      --nav-bg: rgba(7,11,20,0.97); --shadow: 0 8px 32px rgba(0,0,0,0.7);
+      --card-bg: rgba(13,18,32,0.85);
+    }
+    html[data-theme="light"] {
+      --bg: #f0f4ff; --bg2: #e4eaff; --bg3: rgba(255,255,255,0.93);
+      --bginp: rgba(0,0,0,0.045); --text: #0f1726; --text2: #4a5578;
+      --text3: #8892aa; --border: rgba(59,130,246,0.22); --brd2: rgba(0,0,0,0.07);
+      --nav-bg: rgba(240,244,255,0.97); --shadow: 0 8px 32px rgba(0,0,100,0.1);
+      --card-bg: rgba(255,255,255,0.92);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 820px) { body { grid-template-columns: 1fr; } }
+
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(130px); }
+    .orb-1 { width:700px; height:700px; background:radial-gradient(circle,#1d4ed8,#0f0a23); top:-250px; left:-200px; opacity:.18; animation:fl 16s ease-in-out infinite; }
+    .orb-2 { width:500px; height:500px; background:radial-gradient(circle,#6d28d9,#070b14); bottom:-150px; right:-100px; opacity:.15; animation:fl 22s ease-in-out infinite 6s; }
+    .orb-3 { width:350px; height:350px; background:radial-gradient(circle,#3b82f6,transparent); top:35%; right:8%; opacity:.09; animation:fl 28s ease-in-out infinite 12s; }
+    html[data-theme="light"] .orb { opacity:.05; }
+    @keyframes fl { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-45px) scale(1.05)} }
+
+    /* Theme btn */
+    .theme-btn {
+      width:38px; height:38px; border-radius:9px;
+      background:var(--bginp); border:1px solid var(--border);
+      color:var(--text2); font-size:.88rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .2s;
+    }
+    .theme-btn:hover { border-color:var(--blue); color:var(--blue-light); }
+    #themeToggle { position:fixed; top:18px; right:18px; z-index:1000; }
+
+    /* Left */
+    .auth-left {
+      position:relative; z-index:1;
+      background:var(--card-bg); border-right:1px solid var(--border);
+      backdrop-filter:blur(24px);
+      display:flex; flex-direction:column; justify-content:center;
+      padding:3rem 3.5rem; gap:2.2rem;
+    }
+    @media (max-width:820px) { .auth-left { display:none; } }
+
+    /* ── LOGO ── */
+    .left-logo { display:flex; align-items:center; gap:.9rem; text-decoration:none; }
+    .left-logo-icon {
+      width:54px; height:54px; border-radius:14px;
+      background:linear-gradient(135deg,var(--blue-dark),var(--purple));
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; box-shadow:0 8px 24px var(--glow-blue); overflow:hidden;
+    }
+    .logo-wordmark {
+      font-family: var(--font-disp); font-size:1.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      background:linear-gradient(135deg,var(--blue-light),var(--purple-light));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      line-height:1;
+    }
+    .logo-wordmark span { font-size:0.52em; display:block; letter-spacing:.18em; text-transform:uppercase; margin-top:3px; }
+    .left-tagline { font-size:.88rem; color:var(--text2); margin-top:.25rem; }
+
+    .left-features { display:flex; flex-direction:column; gap:.9rem; }
+    .lf-item {
+      display:flex; align-items:flex-start; gap:.85rem;
+      padding:.9rem 1rem; border-radius:12px;
+      background:rgba(59,130,246,.05); border:1px solid var(--brd2);
+      transition:border-color .2s;
+    }
+    .lf-item:hover { border-color:var(--border); }
+    .lf-icon { width:38px; height:38px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:.9rem; background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15)); }
+    .lf-item h4 { font-size:.85rem; font-weight:700; color:var(--text); }
+    .lf-item p { font-size:.75rem; color:var(--text3); margin-top:.1rem; line-height:1.5; }
+    .left-quote { padding:.95rem 1.2rem; border-left:3px solid var(--blue); background:rgba(59,130,246,.05); border-radius:0 10px 10px 0; font-size:.82rem; color:var(--text2);  line-height:1.65; }
+    .left-back { font-size:.8rem; color:var(--text3); }
+    .left-back a { color:var(--blue-light); text-decoration:none; font-weight:600; }
+    .left-back a:hover { text-decoration:underline; }
+
+    /* Right */
+    .auth-right { position:relative; z-index:1; display:flex; align-items:center; justify-content:center; padding:3rem 2rem; }
+    .form-box {
+      width:100%; max-width:440px;
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:18px; backdrop-filter:blur(24px); padding:2.5rem;
+      box-shadow:0 24px 64px rgba(0,0,0,.45);
+    }
+    html[data-theme="light"] .form-box { box-shadow:0 24px 64px rgba(0,0,100,.1); }
+
+    /* Tabs */
+    .form-tabs { display:flex; gap:0; margin-bottom:1.8rem; border-radius:10px; overflow:hidden; border:1px solid var(--brd2); background:var(--bginp); padding:3px; }
+    .form-tab { flex:1; padding:.5rem; font-size:.85rem; font-weight:700; font-family:var(--font-sans); cursor:pointer; border:none; border-radius:8px; background:transparent; color:var(--text3); transition:all .2s; }
+    .form-tab.active { background:linear-gradient(135deg,var(--blue-dark),var(--purple)); color:#fff; box-shadow:0 2px 10px var(--glow-blue); }
+
+    /* Forms */
+    .auth-form { display:none; }
+    .auth-form.active { display:block; animation:fadeIn .2s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .form-head { margin-bottom:1.5rem; }
+    .form-head h2 { font-family:var(--font-disp); font-size:1.75rem; font-weight:600;  color:var(--text); }
+    .form-head p { font-size:.82rem; color:var(--text3); margin-top:.3rem; }
+
+    /* Fields */
+    .fg { margin-bottom:1rem; }
+    .fg label { display:block; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text2); margin-bottom:.38rem; }
+    .fg label i { color:var(--blue); margin-right:.28rem; font-size:.75rem; }
+    .iw { position:relative; display:flex; align-items:center; }
+    .iw i:first-child { position:absolute; left:.9rem; color:var(--text3); font-size:.78rem; pointer-events:none; }
+    .iw input { width:100%; padding:.68rem .9rem .68rem 2.5rem; background:var(--bginp); border:1px solid var(--brd2); border-radius:9px; color:var(--text); font-size:.88rem; font-family:var(--font-sans); transition:all .2s; outline:none; }
+    .iw input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,.14); }
+    .pw-toggle { position:absolute; right:.75rem; background:none; border:none; cursor:pointer; color:var(--text3); font-size:.8rem; padding:.25rem; transition:color .2s; }
+    .pw-toggle:hover { color:var(--blue-light); }
+    .err-msg { font-size:.73rem; color:var(--danger); margin-top:.3rem; min-height:.9rem; display:block; }
+
+    .alert { padding:.68rem .95rem; border-radius:9px; margin-bottom:1rem; font-size:.83rem; display:none; }
+    .alert.error { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:#f87171; }
+    .alert.success { background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); color:#22c55e; }
+
+    .strength-bar { height:3px; background:var(--brd2); border-radius:2px; margin:.4rem 0 .2rem; overflow:hidden; }
+    .strength-fill { height:100%; width:0; border-radius:2px; transition:all .35s; }
+    .strength-text { font-size:.71rem; color:var(--text3); }
+
+    .cbx { display:flex; align-items:flex-start; gap:.6rem; margin:.8rem 0; cursor:pointer; font-size:.8rem; color:var(--text2); }
+    .cbx input { margin-top:.15rem; accent-color:var(--blue); }
+    .cbx a { color:var(--blue-light); text-decoration:none; }
+    .cbx a:hover { text-decoration:underline; }
+
+    .btn-submit { width:100%; padding:.78rem; border-radius:10px; background:linear-gradient(135deg,var(--blue-dark),var(--purple)); border:none; color:#fff; font-size:.94rem; font-weight:700; font-family:var(--font-disp);  letter-spacing:.04em; cursor:pointer; transition:all .25s; box-shadow:0 4px 18px var(--glow-blue); margin-top:.4rem; }
+    .btn-submit:hover:not(:disabled) { background:linear-gradient(135deg,var(--blue),var(--purple-light)); transform:translateY(-1px); box-shadow:0 8px 28px var(--glow-blue); }
+    .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
+
+    .divider { display:flex; align-items:center; gap:.75rem; margin:1rem 0; color:var(--text3); font-size:.73rem; }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--brd2); }
+
+    .socials { display:flex; gap:.6rem; }
+    .social-btn { flex:1; padding:.55rem; border-radius:9px; background:var(--bginp); border:1px solid var(--brd2); color:var(--text2); font-size:.8rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:.45rem; font-family:var(--font-sans); font-weight:700; }
+    .social-btn:hover { border-color:var(--blue); color:var(--blue-light); }
+
+    .form-footer { text-align:center; font-size:.8rem; color:var(--text3); margin-top:1.1rem; }
+    .form-footer a { color:var(--blue-light); text-decoration:none; font-weight:700; }
+    .form-footer a:hover { text-decoration:underline; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:1.4rem; right:1.4rem; z-index:9999; padding:.75rem 1.15rem; border-radius:var(--radius); font-size:.84rem; font-weight:600; background:var(--card-bg); color:var(--text); border:1px solid var(--border); backdrop-filter:blur(16px); box-shadow:0 8px 32px rgba(0,0,0,.55); transform:translateY(120%); opacity:0; transition:all .32s cubic-bezier(.34,1.56,.64,1); pointer-events:none; max-width:360px; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.success { border-color:rgba(34,197,94,.45); color:#22c55e; }
+    .toast.error { border-color:rgba(248,113,113,.4); color:#f87171; }
+    .toast.info { border-color:rgba(59,130,246,.4); color:var(--blue-light); }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<button class="theme-btn" id="themeToggle" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+
+<!-- LEFT -->
+<div class="auth-left">
+  <div>
+    <div class="left-logo">
+      <div class="left-logo-icon">
+        <!-- QM SVG Logo -->
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2.2" fill="none"/>
+          <line x1="18.5" y1="18.5" x2="26" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="21" y1="23" x2="27" y2="23" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="24" y1="20" x2="24" y2="26" stroke="rgba(255,255,255,0.6)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-wordmark">QuantiMeasure<span>Precision Operations</span></div>
+      </div>
+    </div>
+    <p class="left-tagline">The complete platform for precision measurement operations.</p>
+  </div>
+
+  <div class="left-features">
+    <div class="lf-item">
+      <div class="lf-icon" style="color:var(--blue-light)"><i class="fas fa-exchange-alt"></i></div>
+      <div>
+        <h4>5 Operation Types</h4>
+        <p>Compare, Add, Subtract, Divide, and Convert — across Length, Weight, Volume & Temperature.</p>
+      </div>
+    </div>
+    <div class="lf-item">
+      <div class="lf-icon" style="color:var(--purple-light)"><i class="fas fa-database"></i></div>
+      <div>
+        <h4>Full History Saved</h4>
+        <p>Every result is stored in your personal database. Filter and export your history at any time.</p>
+      </div>
+    </div>
+    <div class="lf-item">
+      <div class="lf-icon" style="color:#22c55e"><i class="fas fa-chart-bar"></i></div>
+      <div>
+        <h4>Real-Time Analytics</h4>
+        <p>Live counters for each operation type. Track your usage patterns from the dashboard.</p>
+      </div>
+    </div>
+    <div class="lf-item">
+      <div class="lf-icon" style="color:#f59e0b"><i class="fas fa-shield-halved"></i></div>
+      <div>
+        <h4>Secure & Private</h4>
+        <p>JWT-authenticated sessions keep your data yours. No third-party sharing, ever.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="left-quote">
+    "Measurement is the first step that leads to control and eventually to improvement."
+  </div>
+
+  <div class="left-back">
+    ← <a href="index.html">Back to home page</a>
+  </div>
+</div>
+
+<!-- RIGHT -->
+<div class="auth-right">
+  <div class="form-box">
+
+    <div class="form-tabs">
+      <button class="form-tab active" id="tabLogin"  onclick="switchForm('login')">Sign In</button>
+      <button class="form-tab"        id="tabSignup" onclick="switchForm('signup')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="auth-form active" id="loginForm">
+      <div class="form-head">
+        <h2>Welcome back</h2>
+        <p>Sign in to your QuantiMeasure account</p>
+      </div>
+      <div id="loginAlert" class="alert error"></div>
+      <form onsubmit="handleLogin(event)">
+        <div class="fg">
+          <label><i class="fas fa-user"></i> Username</label>
+          <div class="iw">
+            <i class="fas fa-user"></i>
+            <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username">
+          </div>
+          <span class="err-msg" id="loginUsernameError"></span>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-lock"></i> Password</label>
+          <div class="iw">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('loginPassword')"><i class="fas fa-eye"></i></button>
+          </div>
+          <span class="err-msg" id="loginPasswordError"></span>
+        </div>
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> <span id="loginBtnText">Sign In</span>
+        </button>
+        <div class="divider">or</div>
+        <div class="socials">
+          <button type="button" class="social-btn" onclick="socialToast('Google')"><i class="fab fa-google"></i> Google</button>
+          <button type="button" class="social-btn" onclick="socialToast('GitHub')"><i class="fab fa-github"></i> GitHub</button>
+        </div>
+        <p class="form-footer">No account? <a href="#" onclick="switchForm('signup')">Create one free →</a></p>
+      </form>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-form" id="signupForm">
+      <div class="form-head">
+        <h2>Create account</h2>
+        <p>Get started with QuantiMeasure for free</p>
+      </div>
+      <div id="signupAlert" class="alert error"></div>
+      <form onsubmit="handleSignup(event)">
+        <div class="fg">
+          <label><i class="fas fa-user"></i> Username</label>
+          <div class="iw">
+            <i class="fas fa-user"></i>
+            <input type="text" id="signupUsername" placeholder="Choose a username" autocomplete="username">
+          </div>
+          <span class="err-msg" id="signupUsernameError"></span>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-lock"></i> Password</label>
+          <div class="iw">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="signupPassword" placeholder="Create a password" autocomplete="new-password" oninput="checkStrength(this.value)">
+            <button type="button" class="pw-toggle" onclick="togglePw('signupPassword')"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="strength-bar"><div id="strengthFill" class="strength-fill"></div></div>
+          <span id="strengthText" class="strength-text"></span>
+          <span class="err-msg" id="signupPasswordError"></span>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-lock"></i> Confirm Password</label>
+          <div class="iw">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="signupConfirm" placeholder="Confirm your password" autocomplete="new-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('signupConfirm')"><i class="fas fa-eye"></i></button>
+          </div>
+          <span class="err-msg" id="signupConfirmError"></span>
+        </div>
+        <label class="cbx">
+          <input type="checkbox" id="agreeTerms">
+          <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+        </label>
+        <button type="submit" class="btn-submit" id="signupBtn">
+          <i class="fas fa-user-plus"></i> <span id="signupBtnText">Create Account</span>
+        </button>
+        <p class="form-footer">Already have an account? <a href="#" onclick="switchForm('login')">Sign in →</a></p>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ── THEME ── */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.innerHTML = t === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  applyTheme(nxt);
+  localStorage.setItem('qm_theme', nxt);
+}
+applyTheme(localStorage.getItem('qm_theme') || 'dark');
+
+/* ── SESSION ── */
+const TOKEN_KEY = 'qm_token', USER_KEY = 'qm_user', USER_STORE_KEY = 'qm_users';
+function saveSession(token, username, role) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify({ username, role }));
+}
+function isAuth() { return !!localStorage.getItem(TOKEN_KEY); }
+
+/* ── TOAST ── */
+let _toastTimer;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  if (_toastTimer) clearTimeout(_toastTimer);
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3800);
+}
+
+/* ── AUTH HELPERS ── */
+function switchForm(t) {
+  document.getElementById('loginForm').classList.toggle('active', t === 'login');
+  document.getElementById('signupForm').classList.toggle('active', t === 'signup');
+  document.getElementById('tabLogin').classList.toggle('active', t === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', t === 'signup');
+}
+function togglePw(id) {
+  const inp = document.getElementById(id);
+  const btn = inp.parentElement.querySelector('.pw-toggle i');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if (btn) btn.className = inp.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+function checkStrength(pw) {
+  let s = 0;
+  if (pw.length >= 6) s++; if (pw.length >= 8) s++;
+  if (/[a-z]/.test(pw)) s++; if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++; if (/[^a-zA-Z0-9]/.test(pw)) s++;
+  const pct = (s / 6) * 100;
+  const fill = document.getElementById('strengthFill');
+  const txt  = document.getElementById('strengthText');
+  if (fill) fill.style.width = pct + '%';
+  if (s <= 2) { if(fill) fill.style.background = '#f87171'; if(txt) txt.textContent = 'Weak'; }
+  else if (s <= 4) { if(fill) fill.style.background = '#f59e0b'; if(txt) txt.textContent = 'Fair'; }
+  else { if(fill) fill.style.background = '#22c55e'; if(txt) txt.textContent = 'Strong'; }
+}
+function showAlert(id, msg, type='error') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg; el.className = `alert ${type}`; el.style.display = 'block';
+}
+function hideAlert(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+function socialToast(name) { showToast(`${name} login coming soon`, 'info'); }
+
+function loadUsers() {
+  try { const raw = localStorage.getItem(USER_STORE_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch { return {}; }
+}
+function persistUsers(users) { localStorage.setItem(USER_STORE_KEY, JSON.stringify(users)); }
+function normalizeUsername(u) { return u?.trim().toLowerCase() || ''; }
+
+async function handleLogin(e) {
+  e.preventDefault();
+  hideAlert('loginAlert');
+  document.getElementById('loginUsernameError').textContent = '';
+  document.getElementById('loginPasswordError').textContent = '';
+
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!username) { document.getElementById('loginUsernameError').textContent = 'Username is required'; return; }
+  if (password.length < 6) { document.getElementById('loginPasswordError').textContent = 'Min 6 characters'; return; }
+
+  const btn = document.getElementById('loginBtn');
+  const txt = document.getElementById('loginBtnText');
+  btn.disabled = true; txt.textContent = 'Signing in…';
+
+  try {
+    const users = loadUsers();
+    const normalized = normalizeUsername(username);
+    const user = users[normalized];
+    if (!user || user.password !== password) {
+      const msg = 'Invalid username or password';
+      showAlert('loginAlert', msg, 'error'); showToast(msg, 'error'); return;
+    }
+    const token = `qm-local-${Date.now()}`;
+    saveSession(token, user.username, user.role || 'Member');
+    showToast('Login successful! Redirecting…', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+  } finally {
+    btn.disabled = false; txt.textContent = 'Sign In';
+  }
+}
+
+async function handleSignup(e) {
+  e.preventDefault();
+  hideAlert('signupAlert');
+  ['signupUsernameError','signupPasswordError','signupConfirmError'].forEach(id => {
+    document.getElementById(id).textContent = '';
+  });
+
+  const username = document.getElementById('signupUsername').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const confirm  = document.getElementById('signupConfirm').value;
+  const agree    = document.getElementById('agreeTerms')?.checked;
+  let ok = true;
+
+  if (!username || username.length < 3) { document.getElementById('signupUsernameError').textContent = 'Min 3 characters'; ok = false; }
+  if (password.length < 6) { document.getElementById('signupPasswordError').textContent = 'Min 6 characters'; ok = false; }
+  if (password !== confirm) { document.getElementById('signupConfirmError').textContent = 'Passwords do not match'; ok = false; }
+  if (!agree) { showToast('Please accept the terms', 'error'); ok = false; }
+  if (!ok) return;
+
+  const btn = document.getElementById('signupBtn');
+  const txt = document.getElementById('signupBtnText');
+  btn.disabled = true; txt.textContent = 'Creating account…';
+
+  try {
+    const users = loadUsers();
+    const normalized = normalizeUsername(username);
+    if (users[normalized]) {
+      const msg = 'Username already taken';
+      showAlert('signupAlert', msg, 'error'); showToast(msg, 'error'); return;
+    }
+    users[normalized] = { username, password, role: 'Member' };
+    persistUsers(users);
+    const token = `qm-local-${Date.now()}`;
+    saveSession(token, username, 'Member');
+    showToast('Account created! Welcome 🎉', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+  } finally {
+    btn.disabled = false; txt.textContent = 'Create Account';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (isAuth()) { window.location.href = 'dashboard.html'; return; }
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tab') === 'signup') switchForm('signup');
+});
+</script>
+</body>
+</html>

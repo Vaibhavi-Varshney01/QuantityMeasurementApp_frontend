@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantiMeasure — Precision Measurement Operations</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── LANDING-SPECIFIC STYLES ── */
+    body { overflow-x: hidden; }
+
+    /* ── TOP NAV (landing variant) ── */
+    .nav-cta {
+      display: flex; align-items: center; gap: 0.55rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center;
+      padding: 100px 2rem 4rem;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.35rem 1rem; border-radius: 50px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      font-size: 0.78rem; font-weight: 700; color: var(--blue-light);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-eyebrow i { font-size: 0.72rem; }
+    .hero-title {
+      font-family: var(--font-disp); font-weight: 800;
+      font-size: clamp(2.6rem, 6vw, 5rem);
+      line-height: 1.08; letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 1.4rem;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+    .hero-title .grad {
+      background: linear-gradient(135deg, var(--blue-light) 0%, var(--purple-light) 60%, #f0abfc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem); color: var(--text2);
+      max-width: 580px; line-height: 1.65;
+      margin-bottom: 2.4rem;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+    .hero-actions {
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+    .btn-hero-p {
+      padding: 0.85rem 2rem; border-radius: 50px;
+      background: linear-gradient(135deg, var(--blue-dark), var(--purple));
+      color: #fff; font-size: 1rem; font-weight: 700; font-family: var(--font-sans);
+      border: none; cursor: pointer; transition: all 0.25s;
+      box-shadow: 0 8px 28px var(--glow-blue);
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-hero-p:hover { transform: translateY(-2px); box-shadow: 0 12px 36px var(--glow-blue); }
+    .btn-hero-s {
+      padding: 0.85rem 2rem; border-radius: 50px;
+      background: var(--bginp); color: var(--text2);
+      border: 1px solid var(--brd2); font-size: 1rem; font-weight: 700;
+      font-family: var(--font-sans); cursor: pointer; transition: all 0.25s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-hero-s:hover { border-color: var(--blue); color: var(--blue-light); }
+
+    .hero-trust {
+      margin-top: 3rem;
+      display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s ease 0.4s both;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.8rem; color: var(--text3); font-weight: 600;
+    }
+    .trust-item i { color: var(--blue-light); font-size: 0.75rem; }
+
+    /* ── DEMO BADGE ── */
+    .hero-badge {
+      position: relative; margin-top: 4rem;
+      animation: fadeUp 0.6s ease 0.5s both;
+    }
+    .demo-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem 2rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(59,130,246,.1);
+      display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; justify-content: center;
+      max-width: 640px;
+    }
+    html[data-theme="light"] .demo-card { box-shadow: 0 24px 60px rgba(0,0,100,.12); }
+    .demo-op {
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .demo-val {
+      text-align: center;
+    }
+    .demo-val .dv { font-family: var(--font-disp); font-size: 1.6rem; font-weight: 800; color: var(--text); }
+    .demo-val .du { font-size: 0.75rem; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+    .demo-arrow {
+      font-size: 1.2rem; color: var(--blue-light); opacity: 0.6;
+    }
+    .demo-result {
+      text-align: center; padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, rgba(59,130,246,.1), rgba(139,92,246,.1));
+      border: 1px solid rgba(59,130,246,.25); border-radius: 10px;
+    }
+    .demo-result .dr { font-family: var(--font-disp); font-size: 1.6rem; font-weight: 800; color: var(--blue-light); }
+    .demo-result .dl { font-size: 0.72rem; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    /* ── SECTION DIVIDER ── */
+    .section-wrap { position: relative; z-index: 1; }
+    .section { padding: 6rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--blue-light);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--font-disp); font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800; color: var(--text); line-height: 1.15;
+      letter-spacing: -0.01em; margin-bottom: 1rem;
+    }
+    .section-sub { font-size: 1.05rem; color: var(--text2); max-width: 520px; line-height: 1.65; }
+    .section-center { text-align: center; }
+    .section-center .section-sub { margin: 0 auto; }
+
+    /* ── FEATURES GRID ── */
+    .feat-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.2rem; margin-top: 3.5rem;
+    }
+    .feat-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.6rem;
+      backdrop-filter: blur(14px);
+      transition: all 0.25s; cursor: default;
+    }
+    .feat-card:hover { border-color: rgba(59,130,246,.4); transform: translateY(-3px); box-shadow: 0 12px 32px var(--glow-blue); }
+    .feat-card-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; margin-bottom: 1.1rem;
+    }
+    .feat-card h3 { font-family: var(--font-disp); font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+    .feat-card p  { font-size: 0.85rem; color: var(--text2); line-height: 1.65; }
+
+    /* ── OPERATIONS SHOWCASE ── */
+    .ops-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem; margin-top: 3rem;
+    }
+    .op-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.4rem 1.2rem;
+      text-align: center; transition: all 0.22s; cursor: default;
+    }
+    .op-card:hover { transform: translateY(-3px); border-color: var(--border); }
+    .op-card .op-emoji { font-size: 2rem; margin-bottom: 0.65rem; display: block; }
+    .op-card h4 { font-family: var(--font-disp); font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; }
+    .op-card p  { font-size: 0.78rem; color: var(--text3); }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap;
+      margin-top: 3rem;
+    }
+    .stat-block { text-align: center; }
+    .stat-block .sn {
+      font-family: var(--font-disp); font-size: 2.8rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--blue-light), var(--purple-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-block .sl { font-size: 0.82rem; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.2rem; }
+
+    /* ── HOW IT WORKS ── */
+    .steps { display: flex; gap: 0; margin-top: 3.5rem; position: relative; flex-wrap: wrap; }
+    .step { flex: 1; min-width: 220px; position: relative; padding: 0 1rem 0 0; }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-dark), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-disp); font-size: 1rem; font-weight: 800; color: #fff;
+      box-shadow: 0 6px 18px var(--glow-blue); margin-bottom: 1rem; flex-shrink: 0;
+    }
+    .step-title { font-family: var(--font-disp); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem; }
+    .step-desc  { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
+    .step-connector {
+      position: absolute; top: 22px; right: 0;
+      width: calc(100% - 44px - 1rem); height: 1px;
+      background: linear-gradient(90deg, rgba(59,130,246,.4), transparent);
+      margin-left: 44px;
+    }
+    .step:last-child .step-connector { display: none; }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      position: relative; z-index: 1;
+      padding: 6rem 2rem;
+      text-align: center;
+    }
+    .cta-inner {
+      max-width: 640px; margin: 0 auto;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3.5rem 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 60px rgba(0,0,0,.4), 0 0 0 1px rgba(59,130,246,.08);
+    }
+    .cta-inner h2 { font-family: var(--font-disp); font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; }
+    .cta-inner p  { font-size: 1rem; color: var(--text2); margin-bottom: 2rem; }
+    .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--brd2);
+      padding: 2rem 2rem;
+      text-align: center;
+      font-size: 0.8rem; color: var(--text3);
+    }
+    footer a { color: var(--blue-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <canvas id="px"></canvas>
+</div>
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-icon"><i class="fas fa-gauge-high"></i></div>
+      QuantiMeasure
+    </a>
+    <div class="nav-links">
+      <a class="nl" href="#features"><i class="fas fa-star"></i> Features</a>
+      <a class="nl" href="#how-it-works"><i class="fas fa-circle-play"></i> How it works</a>
+      <a class="nl" href="#operations"><i class="fas fa-exchange-alt"></i> Operations</a>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" id="themeToggle" onclick="toggleTheme()"></button>
+      <div class="nav-cta">
+        <a href="auth.html" class="btn btn-s btn-sm">Sign In</a>
+        <a href="auth.html?tab=signup" class="btn btn-p btn-sm">Get Started <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <i class="fas fa-sparkles"></i> Precision Measurement Platform
+  </div>
+  <h1 class="hero-title">
+    Measure, Convert<br>
+    <span class="grad">& Compare Anything</span>
+  </h1>
+  <p class="hero-sub">
+    QuantiMeasure gives you a full suite of measurement operations — comparisons,
+    additions, subtractions, divisions, and unit conversions — all stored in your
+    personal database and accessible from any device.
+  </p>
+  <div class="hero-actions">
+    <a href="auth.html?tab=signup" class="btn-hero-p">
+      <i class="fas fa-rocket"></i> Start for Free
+    </a>
+    <a href="auth.html" class="btn-hero-s">
+      <i class="fas fa-sign-in-alt"></i> Sign In
+    </a>
+  </div>
+  <div class="hero-trust">
+    <div class="trust-item"><i class="fas fa-check-circle"></i> No credit card required</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> Full history saved</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> 5 operation types</div>
+    <div class="trust-item"><i class="fas fa-check-circle"></i> 4 measurement categories</div>
+  </div>
+
+  <!-- Live demo card -->
+  <div class="hero-badge">
+    <div class="demo-card">
+      <div class="demo-op">
+        <div class="demo-val">
+          <div class="dv">1.8</div>
+          <div class="du">Metres</div>
+        </div>
+        <div class="demo-arrow"><i class="fas fa-arrows-left-right"></i></div>
+        <div class="demo-val">
+          <div class="dv">180</div>
+          <div class="du">Centimetres</div>
+        </div>
+      </div>
+      <div style="font-size:1.5rem;color:var(--text3)"><i class="fas fa-equals"></i></div>
+      <div class="demo-result">
+        <div class="dr">✓ Equal</div>
+        <div class="dl">Comparison Result</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS ══ -->
+<div class="section-wrap">
+  <div class="section section-center">
+    <div class="section-label"><i class="fas fa-chart-bar"></i> By the numbers</div>
+    <div class="stats-strip">
+      <div class="stat-block"><div class="sn">5</div><div class="sl">Operation Types</div></div>
+      <div class="stat-block"><div class="sn">4</div><div class="sl">Measurement Categories</div></div>
+      <div class="stat-block"><div class="sn">14+</div><div class="sl">Unit Choices</div></div>
+      <div class="stat-block"><div class="sn">∞</div><div class="sl">History Records</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<div class="section-wrap" id="features">
+  <div class="section">
+    <div class="section-label"><i class="fas fa-star"></i> Features</div>
+    <h2 class="section-title">Everything you need<br>for precise measurement work</h2>
+    <p class="section-sub">A powerful backend paired with a clean interface — designed to save time and reduce errors.</p>
+    <div class="feat-grid">
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);color:var(--blue-light)">
+          <i class="fas fa-database"></i>
+        </div>
+        <h3>Persistent Database</h3>
+        <p>Every operation you run is automatically saved to your personal database. Access your full history anytime, filter it, or export it as CSV.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2);color:var(--purple-light)">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <h3>Smart Unit Conversion</h3>
+        <p>Convert between length, weight, volume, and temperature units instantly. The system validates compatibility and shows you exactly what happens.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#22c55e">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+        <h3>Secure Authentication</h3>
+        <p>JWT-based authentication keeps your data private. Register once and your entire history is tied to your account — accessible from anywhere.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.2);color:#f59e0b">
+          <i class="fas fa-chart-pie"></i>
+        </div>
+        <h3>Usage Analytics</h3>
+        <p>Track how many operations of each type you've run. Live counters update in real-time so you always see the full picture of your usage.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.2);color:#f87171">
+          <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h3>Error Logging</h3>
+        <p>Failed operations are captured and stored separately in an error log. Diagnose issues easily with full context on what went wrong and when.</p>
+      </div>
+
+      <div class="feat-card">
+        <div class="feat-card-icon" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);color:var(--blue-light)">
+          <i class="fas fa-moon"></i>
+        </div>
+        <h3>Dark & Light Modes</h3>
+        <p>Switch between a sleek dark interface and a clean light theme. Your preference is remembered across sessions on every page.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ OPERATIONS ══ -->
+<div class="section-wrap" id="operations">
+  <div class="section section-center">
+    <div class="section-label"><i class="fas fa-exchange-alt"></i> Operations</div>
+    <h2 class="section-title">Five powerful operations,<br>four measurement types</h2>
+    <p class="section-sub">Work with Length, Weight, Volume, and Temperature — using any combination of the operations below.</p>
+    <div class="ops-grid">
+      <div class="op-card" style="border-color:rgba(59,130,246,.25)">
+        <span class="op-emoji">⚖️</span>
+        <h4>Compare</h4>
+        <p>Check if two measurements are equal across any units</p>
+      </div>
+      <div class="op-card" style="border-color:rgba(34,197,94,.25)">
+        <span class="op-emoji">➕</span>
+        <h4>Add</h4>
+        <p>Sum two measurements and get the combined result</p>
+      </div>
+      <div class="op-card" style="border-color:rgba(139,92,246,.25)">
+        <span class="op-emoji">➖</span>
+        <h4>Subtract</h4>
+        <p>Find the difference between two measurement values</p>
+      </div>
+      <div class="op-card" style="border-color:rgba(245,158,11,.25)">
+        <span class="op-emoji">➗</span>
+        <h4>Divide</h4>
+        <p>Divide one measurement by another to get a ratio</p>
+      </div>
+      <div class="op-card" style="border-color:rgba(96,165,250,.25)">
+        <span class="op-emoji">🔄</span>
+        <h4>Convert</h4>
+        <p>Convert a value from one unit to any compatible unit</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="section-wrap" id="how-it-works">
+  <div class="section">
+    <div class="section-label"><i class="fas fa-circle-play"></i> How it works</div>
+    <h2 class="section-title">Up and running<br>in three steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-connector"></div>
+        <div class="step-title">Create your account</div>
+        <div class="step-desc">Register with a username and password. No email required — you're in within seconds.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-connector"></div>
+        <div class="step-title">Choose your operation</div>
+        <div class="step-desc">Select from Compare, Add, Subtract, Divide, or Convert. Pick a measurement type and enter your values.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-connector"></div>
+        <div class="step-title">Get results & review history</div>
+        <div class="step-desc">Instant results are saved to your database. Review, filter, and export your full operation history anytime.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CTA ══ -->
+<div class="cta-band">
+  <div class="cta-inner">
+    <h2>Ready to get started?</h2>
+    <p>Create a free account and run your first measurement operation in under a minute.</p>
+    <div class="cta-actions">
+      <a href="auth.html?tab=signup" class="btn-hero-p">
+        <i class="fas fa-user-plus"></i> Create Free Account
+      </a>
+      <a href="auth.html" class="btn-hero-s">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <p>
+    &copy; 2025 <strong>QuantiMeasure</strong> &nbsp;·&nbsp;
+    Built with precision &nbsp;·&nbsp;
+    <a href="auth.html">Sign In</a> &nbsp;·&nbsp;
+    <a href="auth.html?tab=signup">Register</a>
+  </p>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/theme.js"></script>
+<script>
+  /* If already logged in, show dashboard link in nav */
+  document.addEventListener('DOMContentLoaded', () => {
+    initParticles();
+    if (isAuth()) {
+      const ctaZone = document.querySelector('.nav-cta');
+      if (ctaZone) {
+        ctaZone.innerHTML = `
+          <a href="dashboard.html" class="btn btn-p btn-sm"><i class="fas fa-gauge-high"></i> Dashboard</a>
+          <button class="btn btn-s btn-sm" onclick="clearSession();location.reload()"><i class="fas fa-sign-out-alt"></i> Logout</button>`;
+      }
+    }
+  });
+</script>
+</body>
+</html>

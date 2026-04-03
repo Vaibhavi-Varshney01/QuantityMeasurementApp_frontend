@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuantiMeasure — Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── VARIABLES ── */
+    :root {
+      --blue: #3b82f6; --blue-dark: #1d4ed8; --blue-light: #60a5fa;
+      --purple: #8b5cf6; --purple-dark: #6d28d9; --purple-light: #a78bfa;
+      --glow-blue: rgba(59,130,246,0.32); --glow-purple: rgba(139,92,246,0.28);
+      --success: #22c55e; --danger: #f87171; --warning: #f59e0b;
+      --radius: 12px;
+      --font-sans: 'Space Grotesk', sans-serif;
+      --font-disp: 'Rajdhani', sans-serif;
+    }
+    html[data-theme="dark"] {
+      --bg: #070b14; --bg2: #0d1220; --bg3: rgba(13,18,32,0.88);
+      --bginp: rgba(255,255,255,0.055); --text: #e8edf8; --text2: #8b96b0;
+      --text3: #434e68; --border: rgba(59,130,246,0.2); --brd2: rgba(255,255,255,0.07);
+      --nav-bg: rgba(7,11,20,0.97); --shadow: 0 8px 32px rgba(0,0,0,0.7);
+      --card-bg: rgba(13,18,32,0.85);
+    }
+    html[data-theme="light"] {
+      --bg: #f0f4ff; --bg2: #e4eaff; --bg3: rgba(255,255,255,0.93);
+      --bginp: rgba(0,0,0,0.045); --text: #0f1726; --text2: #4a5578;
+      --text3: #8892aa; --border: rgba(59,130,246,0.22); --brd2: rgba(0,0,0,0.07);
+      --nav-bg: rgba(240,244,255,0.97); --shadow: 0 8px 32px rgba(0,0,100,0.1);
+      --card-bg: rgba(255,255,255,0.92);
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { font-family:var(--font-sans); background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; transition:background .3s,color .3s; }
+
+    /* BG */
+    .bg-layer { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .orb { position:absolute; border-radius:50%; filter:blur(130px); }
+    .orb-1 { width:700px;height:700px;background:radial-gradient(circle,#1d4ed8,#0f0a23);top:-250px;left:-200px;opacity:.18;animation:fl 16s ease-in-out infinite; }
+    .orb-2 { width:500px;height:500px;background:radial-gradient(circle,#6d28d9,#070b14);bottom:-150px;right:-100px;opacity:.15;animation:fl 22s ease-in-out infinite 6s; }
+    .orb-3 { width:350px;height:350px;background:radial-gradient(circle,#3b82f6,transparent);top:35%;right:8%;opacity:.09;animation:fl 28s ease-in-out infinite 12s; }
+    html[data-theme="light"] .orb { opacity:.05; }
+    @keyframes fl { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-45px) scale(1.05)} }
+    canvas#px { position:absolute;inset:0;width:100%;height:100%; }
+
+    /* THEME BTN */
+    .theme-btn { width:38px;height:38px;border-radius:9px;background:var(--bginp);border:1px solid var(--border);color:var(--text2);font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s; }
+    .theme-btn:hover { border-color:var(--blue);color:var(--blue-light); }
+
+    /* NAV */
+    .nav { position:fixed;top:0;left:0;right:0;z-index:200;height:62px;background:var(--nav-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(24px);box-shadow:0 2px 20px rgba(59,130,246,.06); }
+    .nav-inner { display:flex;align-items:center;gap:1.25rem;height:100%;padding:0 1.6rem;max-width:1800px;margin:0 auto; }
+
+    /* LOGO */
+    .brand { display:flex;align-items:center;gap:.65rem;flex-shrink:0;text-decoration:none; }
+    .brand-icon { width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue-dark),var(--purple));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px var(--glow-blue);overflow:hidden; }
+    .brand-wordmark { font-family:var(--font-disp);font-size:1.2rem;font-weight:600;background:linear-gradient(135deg,var(--blue-light),var(--purple-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+
+    .nav-links { display:flex;align-items:center;gap:.2rem;flex:1; }
+    .nl { display:flex;align-items:center;gap:.4rem;padding:.42rem .92rem;border-radius:8px;color:var(--text2);text-decoration:none;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap;border:none;background:none;font-family:var(--font-sans); }
+    .nl:hover { color:var(--text);background:var(--bginp); }
+    .nl.active { color:var(--blue-light);background:rgba(59,130,246,.12); }
+    .nl i { font-size:.8rem; }
+    .nav-right { display:flex;align-items:center;gap:.65rem;margin-left:auto;flex-shrink:0; }
+
+    /* AVATAR */
+    .avatar-wrap { display:flex;align-items:center;gap:.55rem;cursor:pointer;padding:.3rem .7rem .3rem .3rem;border-radius:50px;border:1px solid var(--brd2);background:var(--bginp);transition:all .2s; }
+    .avatar-wrap:hover { border-color:var(--border); }
+    .avatar { width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue-dark),var(--purple));display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#fff;font-weight:800;font-family:var(--font-disp); }
+    .uname { font-size:.82rem;color:var(--text2);font-weight:600; }
+
+    /* CONN */
+    .conn-status { display:inline-flex;align-items:center;gap:.4rem;font-size:.71rem;padding:.22rem .65rem;border-radius:50px;border:1px solid var(--brd2);background:var(--bginp);color:var(--text3); }
+    .conn-dot { width:7px;height:7px;border-radius:50%;background:var(--text3); }
+    .conn-status.ok .conn-dot { background:var(--success);box-shadow:0 0 6px rgba(34,197,94,.5); }
+    .conn-status.ok { color:var(--success);border-color:rgba(34,197,94,.3); }
+    .conn-status.err .conn-dot { background:var(--danger); }
+    .conn-status.err { color:var(--danger);border-color:rgba(248,113,113,.3); }
+
+    /* BUTTONS */
+    .btn { display:inline-flex;align-items:center;gap:.4rem;padding:.46rem .96rem;border-radius:9px;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid transparent;font-family:var(--font-sans);white-space:nowrap; }
+    .btn:disabled { opacity:.45;cursor:not-allowed; }
+    .btn-p { background:linear-gradient(135deg,var(--blue-dark),var(--purple));color:#fff;border-color:var(--blue-dark);box-shadow:0 4px 16px var(--glow-blue); }
+    .btn-p:hover:not(:disabled) { background:linear-gradient(135deg,var(--blue),var(--purple-light));box-shadow:0 6px 24px var(--glow-blue);transform:translateY(-1px); }
+    .btn-s { background:var(--bginp);color:var(--text2);border-color:var(--brd2); }
+    .btn-s:hover:not(:disabled) { border-color:var(--blue);color:var(--blue-light); }
+    .btn-sm { padding:.32rem .78rem;font-size:.78rem; }
+    .btn-lg { padding:.75rem 1.4rem;font-size:.93rem;width:100%;justify-content:center;margin-top:.5rem; }
+    .btn-icon { width:32px;height:32px;border-radius:8px;background:var(--bginp);border:1px solid var(--brd2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.76rem;transition:all .2s; }
+    .btn-icon:hover { border-color:var(--blue);color:var(--blue-light); }
+    .btn-danger { background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:#f87171; }
+    .btn-danger:hover:not(:disabled) { background:rgba(248,113,113,.2);border-color:rgba(248,113,113,.5); }
+
+    /* CARDS */
+    .card { background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(14px);box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s,box-shadow .2s; }
+    .card:hover { border-color:rgba(59,130,246,.35); }
+    .card-hd { display:flex;align-items:center;justify-content:space-between;padding:.95rem 1.25rem;border-bottom:1px solid var(--brd2); }
+    .card-hd h2 { font-family:var(--font-disp);font-size:.96rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:.5rem; }
+    .card-hd h2 i { color:var(--blue);font-size:.82rem; }
+    .cp { padding:1.25rem; }
+
+    /* LAYOUT */
+    .wrapper { display:flex;padding-top:62px;min-height:100vh;position:relative;z-index:1; }
+    .sidebar { width:220px;flex-shrink:0;background:var(--nav-bg);border-right:1px solid var(--border);position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;backdrop-filter:blur(20px); }
+    .sb-inner { padding:1.2rem .7rem; }
+    .sb-section { margin-bottom:1.6rem; }
+    .sb-label { font-size:.61rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);padding:0 .55rem;margin-bottom:.5rem;display:block; }
+    .sb-menu { list-style:none; }
+    .sb-menu a { display:flex;align-items:center;gap:.65rem;padding:.52rem .75rem;border-radius:9px;color:var(--text2);text-decoration:none;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .18s; }
+    .sb-menu a:hover { color:var(--text);background:var(--bginp); }
+    .sb-menu a.active { color:var(--blue-light);background:rgba(59,130,246,.12); }
+    .sb-menu i { width:15px;text-align:center;font-size:.8rem; }
+    .main { flex:1;padding:1.8rem;min-width:0; }
+
+    /* METRICS */
+    .metrics { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.6rem; }
+    .metric { background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;display:flex;align-items:center;gap:1rem;backdrop-filter:blur(14px);transition:all .22s;cursor:default; }
+    .metric:hover { border-color:rgba(59,130,246,.4);transform:translateY(-2px);box-shadow:0 6px 24px var(--glow-blue); }
+    .m-icon { width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .m-icon.blue { background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);color:var(--blue-light); }
+    .m-icon.purple { background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2);color:var(--purple-light); }
+    .m-icon.green { background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);color:#22c55e; }
+    .m-icon.red { background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.2);color:#f87171; }
+    .m-label { font-size:.69rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);font-weight:700; }
+    .m-val { font-family:var(--font-disp);font-size:1.8rem;font-weight:600;color:var(--text);line-height:1.2; }
+    .m-sub { font-size:.67rem;color:var(--text3);margin-top:.1rem; }
+
+    /* CONVERTER */
+    .cgrid { display:grid;grid-template-columns:1fr 320px;gap:1.2rem; }
+    @media (max-width:900px) { .cgrid { grid-template-columns:1fr; } }
+
+    .op-pills { display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.15rem; }
+    .op-pill { padding:.38rem .85rem;border-radius:50px;border:1px solid var(--brd2);background:var(--bginp);color:var(--text2);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .18s;font-family:var(--font-sans); }
+    .op-pill:hover { border-color:var(--blue);color:var(--blue-light); }
+    .op-pill.active { background:linear-gradient(135deg,var(--blue-dark),var(--purple));border-color:var(--blue);color:#fff;box-shadow:0 3px 12px var(--glow-blue); }
+
+    .api-bar { display:flex;align-items:center;gap:.5rem;background:var(--bginp);border:1px solid var(--brd2);border-radius:8px;padding:.5rem .8rem;font-family:'Courier New',monospace;font-size:.71rem;color:var(--text3);margin-bottom:1.15rem;overflow:hidden; }
+    .method { background:linear-gradient(135deg,var(--blue-dark),var(--purple));color:#fff;padding:.12rem .5rem;border-radius:4px;font-size:.65rem;font-weight:800;flex-shrink:0;letter-spacing:.05em; }
+
+    .result-box { background:var(--bginp);border:1px solid var(--border);border-radius:var(--radius);padding:1.15rem;margin-top:1rem;display:none; }
+    .result-box.error { border-color:rgba(248,113,113,.4); }
+    .r-label { font-size:.67rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);font-weight:800; }
+    .r-val { font-family:var(--font-disp);font-size:1.85rem;font-weight:600;color:var(--blue-light);margin-top:.2rem; }
+    .r-meta { font-size:.72rem;color:var(--text3);margin-top:.3rem; }
+
+    .sgrid { display:grid;grid-template-columns:1fr 1fr;gap:.65rem; }
+    .stat-i { background:var(--bginp);border:1px solid var(--brd2);border-radius:9px;padding:.7rem;text-align:center;transition:border-color .2s; }
+    .stat-i:hover { border-color:var(--blue); }
+    .stat-i h4 { font-size:.61rem;text-transform:uppercase;letter-spacing:.11em;color:var(--text3);font-weight:800; }
+    .stat-v { font-family:var(--font-disp);font-size:1.3rem;font-weight:600;color:var(--text); }
+
+    .h-section { margin-top:1rem; }
+    .h-section h3 { font-size:.67rem;text-transform:uppercase;letter-spacing:.11em;color:var(--text3);font-weight:800;margin-bottom:.55rem; }
+    .h-list { list-style:none; }
+    .h-item { display:flex;flex-direction:column;gap:.1rem;padding:.55rem 0;border-bottom:1px solid var(--brd2);font-size:.78rem; }
+    .h-item:last-child { border-bottom:none; }
+    .h-type { color:var(--blue-light);font-weight:800;font-size:.67rem;text-transform:uppercase; }
+    .h-text { color:var(--text2); }
+
+    /* PROFILE */
+    .profile-grid { display:grid;grid-template-columns:320px 1fr;gap:1.2rem; }
+    @media (max-width:900px) { .profile-grid { grid-template-columns:1fr; } }
+    .profile-avatar-big { width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--blue-dark),var(--purple));display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;font-weight:600;font-family:var(--font-disp);margin:0 auto 1rem;box-shadow:0 8px 28px var(--glow-blue);border:3px solid rgba(59,130,246,.3); }
+    .profile-name { font-family:var(--font-disp);font-size:1.4rem;font-weight:600;color:var(--text);text-align:center; }
+    .profile-role { display:block;text-align:center;margin-top:.4rem;padding:.2rem .75rem;border-radius:50px;font-size:.72rem;font-weight:800;background:linear-gradient(135deg,rgba(59,130,246,.15),rgba(139,92,246,.15));border:1px solid rgba(59,130,246,.3);color:var(--blue-light);text-transform:uppercase;letter-spacing:.07em;width:fit-content;margin:.4rem auto 0; }
+    .profile-stats { display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:1.5rem; }
+    .pstat { background:var(--bginp);border:1px solid var(--brd2);border-radius:10px;padding:.75rem;text-align:center; }
+    .pstat-val { font-family:var(--font-disp);font-size:1.4rem;font-weight:600;color:var(--text); }
+    .pstat-lbl { font-size:.62rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);font-weight:800; }
+    .info-row { display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--brd2); }
+    .info-row:last-child { border-bottom:none; }
+    .info-row .lbl { font-size:.82rem;color:var(--text3);font-weight:600; }
+    .info-row .val { font-size:.82rem;color:var(--text);font-weight:700; }
+    .activity-list { list-style:none; }
+    .act-item { display:flex;align-items:center;gap:.85rem;padding:.7rem 0;border-bottom:1px solid var(--brd2); }
+    .act-item:last-child { border-bottom:none; }
+    .act-icon { width:34px;height:34px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem; }
+    .act-text { font-size:.82rem;color:var(--text2); }
+    .act-time { font-size:.72rem;color:var(--text3);margin-left:auto;white-space:nowrap; }
+
+    /* FORMS */
+    .fg { margin-bottom:1rem; }
+    .fg label { display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:.38rem; }
+    .fg label i { color:var(--blue);margin-right:.28rem;font-size:.75rem; }
+    .inp { width:100%;padding:.62rem .88rem;background:var(--bginp);border:1px solid var(--brd2);border-radius:9px;color:var(--text);font-size:.87rem;font-family:var(--font-sans);transition:all .2s;outline:none; }
+    .inp:focus { border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12); }
+    .inp option { background:#0d1220;color:#e8edf8; }
+    html[data-theme="light"] .inp option { background:#fff;color:#0f1726; }
+    .frow { display:grid;grid-template-columns:1fr 1fr;gap:.75rem; }
+
+    /* TABLES */
+    .tbl-wrap { overflow-x:auto; }
+    table { width:100%;border-collapse:collapse; }
+    thead th { padding:.7rem 1.15rem;text-align:left;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);border-bottom:1px solid var(--brd2);background:var(--bginp); }
+    tbody td { padding:.76rem 1.15rem;font-size:.82rem;color:var(--text2);border-bottom:1px solid var(--brd2); }
+    tbody tr:hover td { background:var(--bginp); }
+    tbody tr:last-child td { border-bottom:none; }
+    .ec { text-align:center;color:var(--text3);padding:2.5rem !important; }
+
+    /* BADGES */
+    .badge { display:inline-flex;align-items:center;padding:.18rem .65rem;border-radius:50px;font-size:.69rem;font-weight:800; }
+    .badge-ok { background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25); }
+    .badge-err { background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.25); }
+
+    /* TOAST */
+    .toast { position:fixed;bottom:1.4rem;right:1.4rem;z-index:9999;padding:.75rem 1.15rem;border-radius:var(--radius);font-size:.84rem;font-weight:600;background:var(--card-bg);color:var(--text);border:1px solid var(--border);backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.55);transform:translateY(120%);opacity:0;transition:all .32s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:360px; }
+    .toast.show { transform:translateY(0);opacity:1; }
+    .toast.success { border-color:rgba(34,197,94,.45);color:#22c55e; }
+    .toast.error { border-color:rgba(248,113,113,.4);color:#f87171; }
+    .toast.info { border-color:rgba(59,130,246,.4);color:var(--blue-light); }
+
+    /* FILTER */
+    .flt-sel { padding:.34rem .72rem;background:var(--bginp);border:1px solid var(--brd2);border-radius:8px;color:var(--text2);font-size:.8rem;cursor:pointer;font-family:var(--font-sans);outline:none;transition:all .2s;font-weight:600; }
+    .flt-sel:hover,.flt-sel:focus { border-color:var(--blue);color:var(--text); }
+    .flt-sel option { background:#0d1220; }
+    html[data-theme="light"] .flt-sel option { background:#fff; }
+
+    /* SECTIONS */
+    .sec { display:none; }
+    .sec.active { display:block;animation:fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .sec-hd { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.6rem;gap:1rem;flex-wrap:wrap; }
+    .pg-title { font-family:var(--font-disp);font-size:1.8rem;font-weight:600;letter-spacing:-.01em;color:var(--text); }
+    .pg-title span { background:linear-gradient(135deg,var(--blue-light),var(--purple-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+    .pg-sub { font-size:.83rem;color:var(--text3);margin-top:.2rem; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width:5px;height:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(59,130,246,.25);border-radius:3px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--blue); }
+
+    @media (max-width:768px) { .sidebar{display:none;} .main{padding:1rem;} .nav-links{display:none;} .frow{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+  <canvas id="px"></canvas>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="white" stroke-width="2.2" fill="none"/>
+          <line x1="18.5" y1="18.5" x2="26" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="21" y1="23" x2="27" y2="23" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="24" y1="20" x2="24" y2="26" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark" style="letter-spacing:.06em;text-transform:uppercase;font-weight:700;">QuantiMeasure</span>
+    </a>
+    <div class="nav-links">
+      <button class="nl active" onclick="go('dashboard',this)"><i class="fas fa-chart-line"></i> Dashboard</button>
+      <button class="nl" onclick="go('converter',this)"><i class="fas fa-exchange-alt"></i> Converter</button>
+      <button class="nl" onclick="go('history',this)"><i class="fas fa-history"></i> History</button>
+      <button class="nl" onclick="go('errors',this)"><i class="fas fa-triangle-exclamation"></i> Error Logs</button>
+      <button class="nl" onclick="go('profile',this)"><i class="fas fa-user-circle"></i> My Profile</button>
+    </div>
+    <div class="nav-right">
+      <div class="conn-status" id="connStatus"><span class="conn-dot"></span><span id="connText">Checking…</span></div>
+      <button class="theme-btn" id="themeToggle" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+      <div class="avatar-wrap" onclick="go('profile', document.querySelector('.nl:nth-child(5)'))">
+        <div class="avatar" id="avatarInitial">U</div>
+        <span class="uname" id="userDisplay">User</span>
+      </div>
+      <button class="btn btn-s btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-inner">
+      <div class="sb-section">
+        <span class="sb-label">Navigation</span>
+        <ul class="sb-menu">
+          <li><a class="active" onclick="go('dashboard',this)"><i class="fas fa-home"></i> Dashboard</a></li>
+          <li><a onclick="go('converter',this)"><i class="fas fa-exchange-alt"></i> Converter</a></li>
+          <li><a onclick="go('history',this)"><i class="fas fa-history"></i> History</a></li>
+          <li><a onclick="go('errors',this)"><i class="fas fa-triangle-exclamation"></i> Error Logs</a></li>
+        </ul>
+      </div>
+      <div class="sb-section">
+        <span class="sb-label">Account</span>
+        <ul class="sb-menu">
+          <li><a onclick="go('profile',this)"><i class="fas fa-user-circle"></i> My Profile</a></li>
+          <li><a href="index.html"><i class="fas fa-home"></i> Home Page</a></li>
+          <li><a onclick="logout()" style="color:var(--danger)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="sec-dashboard" class="sec active">
+      <div class="sec-hd">
+        <div>
+          <h1 class="pg-title">Welcome back, <span id="userName">User</span>!</h1>
+          <p class="pg-sub">Here's an overview of your measurement operations.</p>
+        </div>
+        <button class="btn btn-s" onclick="loadDashboard()"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="m-icon blue"><i class="fas fa-calculator"></i></div><div><div class="m-label">Total Ops</div><div class="m-val" id="statTotal">—</div><div class="m-sub">All time</div></div></div>
+        <div class="metric"><div class="m-icon purple"><i class="fas fa-equals"></i></div><div><div class="m-label">Comparisons</div><div class="m-val" id="statCompare">—</div><div class="m-sub">COMPARE ops</div></div></div>
+        <div class="metric"><div class="m-icon green"><i class="fas fa-plus"></i></div><div><div class="m-label">Additions</div><div class="m-val" id="statAdd">—</div><div class="m-sub">ADD ops</div></div></div>
+        <div class="metric"><div class="m-icon red"><i class="fas fa-circle-exclamation"></i></div><div><div class="m-label">Errors</div><div class="m-val" id="statErrors">—</div><div class="m-sub">Failed ops</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="fas fa-clock-rotate-left"></i> Recent Operations</h2>
+          <button class="btn-icon" onclick="loadRecentRecords()" title="Refresh"><i class="fas fa-rotate"></i></button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Type</th><th>Input 1</th><th>Input 2</th><th>Result</th><th>Status</th></tr></thead>
+            <tbody id="recentBody"><tr><td colspan="6" class="ec">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONVERTER -->
+    <section id="sec-converter" class="sec">
+      <div class="sec-hd">
+        <div>
+          <h1 class="pg-title"><span>Measurement</span> Operations</h1>
+          <p class="pg-sub">Select an operation, set measurement type, then enter values.</p>
+        </div>
+      </div>
+      <div class="cgrid">
+        <div class="card">
+          <div class="card-hd"><h2><i class="fas fa-exchange-alt"></i> Operation Panel</h2></div>
+          <div class="cp">
+            <div class="op-pills">
+              <button class="op-pill active" data-op="compare"  onclick="selectOp(this)">⚖️ Compare</button>
+              <button class="op-pill"        data-op="add"      onclick="selectOp(this)">➕ Add</button>
+              <button class="op-pill"        data-op="subtract" onclick="selectOp(this)">➖ Subtract</button>
+              <button class="op-pill"        data-op="divide"   onclick="selectOp(this)">➗ Divide</button>
+              <button class="op-pill"        data-op="convert"  onclick="selectOp(this)">🔄 Convert</button>
+            </div>
+            <div class="api-bar">
+              <span class="method">POST</span>
+              <span id="apiUrl">http://localhost:5207/api/v1/quantities/compare</span>
+            </div>
+            <div class="fg">
+              <label><i class="fas fa-ruler"></i> Measurement Type</label>
+              <select id="measType" class="inp" onchange="updateUnits()">
+                <option value="LengthUnit">Length</option>
+                <option value="WeightUnit">Weight</option>
+                <option value="VolumeUnit">Volume</option>
+                <option value="TemperatureUnit">Temperature</option>
+              </select>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label><i class="fas fa-calculator"></i> Value 1</label>
+                <input type="number" id="val1" class="inp" placeholder="e.g. 1.0" step="any">
+              </div>
+              <div class="fg">
+                <label><i class="fas fa-tag"></i> Unit 1</label>
+                <select id="unit1" class="inp"></select>
+              </div>
+            </div>
+            <div id="row2" class="frow">
+              <div class="fg" id="val2wrap">
+                <label><i class="fas fa-calculator"></i> Value 2</label>
+                <input type="number" id="val2" class="inp" placeholder="e.g. 12.0" step="any">
+              </div>
+              <div class="fg">
+                <label id="unit2lbl"><i class="fas fa-tag"></i> Unit 2</label>
+                <select id="unit2" class="inp"></select>
+              </div>
+            </div>
+            <button class="btn btn-p btn-lg" onclick="runOp()" id="runBtn">
+              <i class="fas fa-play"></i> <span id="runTxt">Execute</span>
+            </button>
+            <div id="resultBox" class="result-box">
+              <div class="r-label">Result</div>
+              <p class="r-val" id="rVal">—</p>
+              <p class="r-meta" id="rMeta"></p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <h2><i class="fas fa-chart-bar"></i> Operation Stats</h2>
+            <button class="btn-icon" onclick="loadStats()" title="Refresh"><i class="fas fa-rotate"></i></button>
+          </div>
+          <div class="cp">
+            <div class="sgrid">
+              <div class="stat-i"><h4>Compare</h4><p class="stat-v" id="sC">—</p></div>
+              <div class="stat-i"><h4>Add</h4><p class="stat-v" id="sA">—</p></div>
+              <div class="stat-i"><h4>Subtract</h4><p class="stat-v" id="sSub">—</p></div>
+              <div class="stat-i"><h4>Divide</h4><p class="stat-v" id="sD">—</p></div>
+              <div class="stat-i" style="grid-column:1/-1"><h4>Convert</h4><p class="stat-v" id="sCv">—</p></div>
+            </div>
+            <div class="h-section">
+              <h3>Recent History</h3>
+              <ul id="sideHist" class="h-list">
+                <li class="h-item" style="color:var(--text3)">No records yet</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="sec-history" class="sec">
+      <div class="sec-hd">
+        <div>
+          <h1 class="pg-title"><span>Operation</span> History</h1>
+          <p class="pg-sub">All measurements stored in your database.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="fas fa-history"></i> All Records</h2>
+          <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+            <select id="hOpFilter" class="flt-sel" onchange="loadHistory()">
+              <option value="">All Operations</option>
+              <option value="COMPARE">Compare</option>
+              <option value="ADD">Add</option>
+              <option value="SUBTRACT">Subtract</option>
+              <option value="DIVIDE">Divide</option>
+              <option value="CONVERT">Convert</option>
+            </select>
+            <select id="hTypeFilter" class="flt-sel" onchange="loadHistory()">
+              <option value="">All Types</option>
+              <option value="LengthUnit">Length</option>
+              <option value="WeightUnit">Weight</option>
+              <option value="VolumeUnit">Volume</option>
+              <option value="TemperatureUnit">Temperature</option>
+            </select>
+            <button class="btn-icon" onclick="loadHistory()"><i class="fas fa-rotate"></i></button>
+            <button class="btn btn-s btn-sm" onclick="exportHistory()"><i class="fas fa-download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Type</th><th>Input 1</th><th>Input 2</th><th>Result</th><th>Status</th></tr></thead>
+            <tbody id="histBody"><tr><td colspan="6" class="ec">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ERRORS -->
+    <section id="sec-errors" class="sec">
+      <div class="sec-hd">
+        <div>
+          <h1 class="pg-title"><span>Error</span> Logs</h1>
+          <p class="pg-sub">Operations that failed or returned errors.</p>
+        </div>
+        <button class="btn btn-s" onclick="loadErrors()"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Type</th><th>Error Message</th></tr></thead>
+            <tbody id="errBody"><tr><td colspan="3" class="ec">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="sec-profile" class="sec">
+      <div class="sec-hd">
+        <div>
+          <h1 class="pg-title">My <span>Profile</span></h1>
+          <p class="pg-sub">Your account information and usage statistics.</p>
+        </div>
+      </div>
+      <div class="profile-grid">
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div class="card">
+            <div class="cp" style="text-align:center;padding:2rem 1.5rem">
+              <div class="profile-avatar-big" id="profileAvatar">U</div>
+              <div class="profile-name" id="profileName">User</div>
+              <span class="profile-role" id="profileRole">User</span>
+              <div class="profile-stats">
+                <div class="pstat"><div class="pstat-val" id="pTotalOps">—</div><div class="pstat-lbl">Total Ops</div></div>
+                <div class="pstat"><div class="pstat-val" id="pErrors">—</div><div class="pstat-lbl">Errors</div></div>
+                <div class="pstat"><div class="pstat-val" id="pCompares">—</div><div class="pstat-lbl">Comparisons</div></div>
+                <div class="pstat"><div class="pstat-val" id="pConverts">—</div><div class="pstat-lbl">Conversions</div></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+          </button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1.2rem">
+          <div class="card">
+            <div class="card-hd"><h2><i class="fas fa-id-card"></i> Account Details</h2></div>
+            <div class="cp">
+              <div class="info-row"><span class="lbl">Username</span><span class="val" id="infoUsername">—</span></div>
+              <div class="info-row"><span class="lbl">Role</span><span class="val" id="infoRole">—</span></div>
+              <div class="info-row"><span class="lbl">Account Status</span><span class="val"><span class="badge badge-ok">Active</span></span></div>
+              <div class="info-row"><span class="lbl">Backend</span><span class="val" id="infoBackend">Checking…</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <h2><i class="fas fa-chart-pie"></i> Operation Breakdown</h2>
+              <button class="btn-icon" onclick="loadProfileStats()"><i class="fas fa-rotate"></i></button>
+            </div>
+            <div class="cp">
+              <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+                <div class="stat-i"><h4>Add</h4><p class="stat-v" id="pAdd">—</p></div>
+                <div class="stat-i"><h4>Subtract</h4><p class="stat-v" id="pSub">—</p></div>
+                <div class="stat-i"><h4>Divide</h4><p class="stat-v" id="pDiv">—</p></div>
+              </div>
+              <div style="margin-top:.75rem">
+                <div class="stat-i">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <h4>Most Used Operation</h4>
+                    <span id="pMostUsed" style="font-family:var(--font-disp);font-size:1rem;font-weight:600;color:var(--blue-light)">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><h2><i class="fas fa-clock"></i> Recent Activity</h2></div>
+            <div class="cp">
+              <ul class="activity-list" id="recentActivity">
+                <li class="h-item" style="color:var(--text3);padding:.5rem 0">Loading activity…</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   QUANTIMEASURE — ALL JS (fixed & self-contained)
+══════════════════════════════════════════ */
+
+/* ── THEME ── */
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  var btn = document.getElementById('themeToggle');
+  if (btn) btn.innerHTML = t === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  var nxt = cur === 'dark' ? 'light' : 'dark';
+  applyTheme(nxt);
+  localStorage.setItem('qm_theme', nxt);
+}
+applyTheme(localStorage.getItem('qm_theme') || 'dark');
+
+/* ── CONSTANTS ── */
+var API_BASE = 'http://localhost:5207';
+var TOKEN_KEY = 'qm_token', USER_KEY = 'qm_user', HISTORY_KEY = 'qm_history';
+
+var ENDPOINTS = {
+  compare:  '/api/v1/quantities/compare',
+  add:      '/api/v1/quantities/add',
+  subtract: '/api/v1/quantities/subtract',
+  divide:   '/api/v1/quantities/divide',
+  convert:  '/api/v1/quantities/convert',
+  errored:  '/api/v1/quantities/history/errored',
+  histOp:   function(op)   { return '/api/v1/quantities/history/operation/' + op; },
+  histType: function(type) { return '/api/v1/quantities/history/type/' + type; },
+  count:    function(op)   { return '/api/v1/quantities/count/' + op; }
+};
+
+var MEASUREMENT_CONFIG = {
+  LengthUnit:      { units: { Feet: 0.3048, Inch: 0.0254, Yard: 0.9144, Cm: 0.01, Meter: 1 } },
+  WeightUnit:      { units: { Kilogram: 1, Gram: 0.001, Pound: 0.45359237, Tonne: 1000 } },
+  VolumeUnit:      { units: { Litre: 1, Millilitre: 0.001, Gallon: 3.78541 } },
+  TemperatureUnit: {}
+};
+
+var UNITS = {
+  LengthUnit:      ['Feet', 'Inch', 'Yard', 'Cm', 'Meter'],
+  WeightUnit:      ['Kilogram', 'Gram', 'Pound', 'Tonne'],
+  VolumeUnit:      ['Litre', 'Millilitre', 'Gallon'],
+  TemperatureUnit: ['Celsius', 'Fahrenheit', 'Kelvin']
+};
+
+var BADGE_COLORS = {
+  compare: '#3b82f6', add: '#22c55e', subtract: '#8b5cf6',
+  divide: '#f59e0b', convert: '#60a5fa', error: '#f87171',
+  COMPARE: '#3b82f6', ADD: '#22c55e', SUBTRACT: '#8b5cf6',
+  DIVIDE: '#f59e0b', CONVERT: '#60a5fa'
+};
+
+var HISTORY_LIMIT = 250;
+var COMPARE_TOLERANCE = 1e-9;
+
+/* ── LOCAL HISTORY ── */
+var localHistory = (function() {
+  try {
+    var s = localStorage.getItem(HISTORY_KEY);
+    return s ? JSON.parse(s) : [];
+  } catch(e) { return []; }
+})();
+
+function saveHistory() {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(localHistory));
+}
+function pushHistory(entry) {
+  localHistory.unshift(entry);
+  if (localHistory.length > HISTORY_LIMIT) localHistory.pop();
+  saveHistory();
+}
+function getHistory(filter) {
+  var rows = localHistory.slice();
+  if (!filter) return rows;
+  if (filter.operation) {
+    var op = filter.operation.toUpperCase();
+    return rows.filter(function(r) { return r.operation === op; });
+  }
+  if (filter.type) {
+    return rows.filter(function(r) { return r.thisMeasurementType === filter.type; });
+  }
+  if (filter.errored) {
+    return rows.filter(function(r) { return r.isError; });
+  }
+  return rows;
+}
+function countOps(op) {
+  if (!op) return localHistory.length;
+  var upper = op.toUpperCase();
+  return localHistory.filter(function(r) { return r.operation === upper; }).length;
+}
+
+/* ── MATH ── */
+function toBase(value, unit, type) {
+  if (type === 'TemperatureUnit') {
+    if (unit === 'Kelvin')     return value;
+    if (unit === 'Celsius')    return value + 273.15;
+    if (unit === 'Fahrenheit') return (value - 32) * (5/9) + 273.15;
+    throw new Error('Unknown temperature unit: ' + unit);
+  }
+  var cfg = MEASUREMENT_CONFIG[type];
+  if (!cfg) throw new Error('Unknown measurement type: ' + type);
+  var factor = cfg.units[unit];
+  if (factor === undefined) throw new Error('Unknown unit: ' + unit);
+  return value * factor;
+}
+function fromBase(value, unit, type) {
+  if (type === 'TemperatureUnit') {
+    if (unit === 'Kelvin')     return value;
+    if (unit === 'Celsius')    return value - 273.15;
+    if (unit === 'Fahrenheit') return (value - 273.15) * (9/5) + 32;
+    throw new Error('Unknown temperature unit: ' + unit);
+  }
+  var cfg = MEASUREMENT_CONFIG[type];
+  if (!cfg) throw new Error('Unknown measurement type: ' + type);
+  var factor = cfg.units[unit];
+  if (factor === undefined) throw new Error('Unknown unit: ' + unit);
+  return value / factor;
+}
+function roundNum(v) {
+  if (!isFinite(v)) return v;
+  return Math.round(v * 1e9) / 1e9;
+}
+
+function executeOperation(op, type, v1, u1, v2, u2) {
+  if (!MEASUREMENT_CONFIG[type]) throw new Error('Unsupported measurement type: ' + type);
+  var baseA = toBase(v1, u1, type);
+
+  if (op === 'CONVERT') {
+    var converted = fromBase(baseA, u2, type);
+    converted = roundNum(converted);
+    return {
+      resultValue: converted,
+      resultUnit: u2,
+      resultString: 'Converted',
+      displayThatValue: converted,
+      displayThatUnit: u2
+    };
+  }
+
+  var baseB = toBase(v2, u2, type);
+  if (op === 'COMPARE') {
+    var equal = Math.abs(baseA - baseB) < COMPARE_TOLERANCE;
+    return { resultValue: equal ? 1 : 0, resultUnit: '', resultString: equal ? 'Equal' : 'Not Equal', displayThatValue: v2, displayThatUnit: u2 };
+  }
+  if (op === 'ADD') {
+    var sum = fromBase(baseA + baseB, u1, type);
+    sum = roundNum(sum);
+    return { resultValue: sum, resultUnit: u1, resultString: 'Sum', displayThatValue: v2, displayThatUnit: u2 };
+  }
+  if (op === 'SUBTRACT') {
+    var diff = fromBase(baseA - baseB, u1, type);
+    diff = roundNum(diff);
+    return { resultValue: diff, resultUnit: u1, resultString: 'Difference', displayThatValue: v2, displayThatUnit: u2 };
+  }
+  if (op === 'DIVIDE') {
+    if (Math.abs(baseB) < Number.EPSILON) throw new Error('Cannot divide by zero');
+    var ratio = roundNum(baseA / baseB);
+    return { resultValue: ratio, resultUnit: '', resultString: 'Ratio', displayThatValue: v2, displayThatUnit: u2 };
+  }
+  throw new Error('Unknown operation: ' + op);
+}
+
+/* ── SESSION ── */
+function getToken()    { return localStorage.getItem(TOKEN_KEY); }
+function getUser()     { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch(e) { return null; } }
+function isAuth()      { return !!getToken(); }
+function clearSession(){ localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
+
+/* ── TOAST ── */
+var _toastTimer;
+function showToast(msg, type) {
+  type = type || 'success';
+  var el = document.getElementById('toast');
+  if (!el) return;
+  if (_toastTimer) clearTimeout(_toastTimer);
+  el.textContent = msg;
+  el.className = 'toast ' + type + ' show';
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3800);
+}
+
+/* ── HELPERS ── */
+function setEl(id, v) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = v;
+}
+function fmtVal(val) {
+  if (val === null || val === undefined || (typeof val === 'number' && isNaN(val))) return '—';
+  if (typeof val === 'number') {
+    var s = val.toFixed(9).replace(/\.?0+$/, '');
+    return s;
+  }
+  return String(val);
+}
+function makeBadge(text, type) {
+  var key = (type || text || '').toLowerCase();
+  var c = BADGE_COLORS[key] || BADGE_COLORS[text] || '#666';
+  return '<span style="background:' + c + '18;color:' + c + ';padding:.16rem .58rem;border-radius:50px;font-size:.68rem;font-weight:800;border:1px solid ' + c + '35">' + text + '</span>';
+}
+function renderTbody(tb, rows, cols) {
+  if (!rows || !rows.length) {
+    tb.innerHTML = '<tr><td colspan="' + cols + '" class="ec">No records found.</td></tr>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (cols === 3) {
+      html += '<tr><td>' + makeBadge(r.operation || 'ERROR', 'error') + '</td>' +
+              '<td>' + (r.thisMeasurementType || '—') + '</td>' +
+              '<td style="color:var(--danger);font-size:.8rem">' + (r.errorMessage || '—') + '</td></tr>';
+    } else {
+      var status = r.isError ? '<span class="badge badge-err">Error</span>' : '<span class="badge badge-ok">OK</span>';
+      html += '<tr>' +
+        '<td>' + makeBadge(r.operation || '—', (r.operation || '').toLowerCase()) + '</td>' +
+        '<td>' + (r.thisMeasurementType || '—') + '</td>' +
+        '<td>' + fmtVal(r.thisValue) + ' ' + (r.thisUnit || '') + '</td>' +
+        '<td>' + fmtVal(r.thatValue) + ' ' + (r.thatUnit || '') + '</td>' +
+        '<td>' + (r.resultString || fmtVal(r.resultValue)) + ' ' + (r.resultUnit || '') + '</td>' +
+        '<td>' + status + '</td>' +
+        '</tr>';
+    }
+  }
+  tb.innerHTML = html;
+}
+
+/* ── CONN STATUS ── */
+function checkConn() {
+  var el  = document.getElementById('connStatus');
+  var txt = document.getElementById('connText');
+  var infoBe = document.getElementById('infoBackend');
+  // Since we're running fully local, always mark as connected
+  if (el)  el.className = 'conn-status ok';
+  if (txt) txt.textContent = 'Local Mode';
+  if (infoBe) infoBe.innerHTML = '<span class="badge badge-ok">Local</span>';
+}
+
+/* ── NAVIGATION ── */
+function go(name, el) {
+  document.querySelectorAll('.sec').forEach(function(s) { s.classList.remove('active'); });
+  var target = document.getElementById('sec-' + name);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nl, .sb-menu a').forEach(function(a) { a.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'history')   loadHistory();
+  if (name === 'errors')    loadErrors();
+  if (name === 'converter') { loadStats(); updateUnits(); }
+  if (name === 'profile')   loadProfile();
+}
+function logout() { clearSession(); window.location.href = 'auth.html'; }
+
+/* ── DASHBOARD ── */
+function loadDashboard() {
+  loadStats();
+  loadRecentRecords();
+}
+
+function loadStats() {
+  var ops   = ['COMPARE','ADD','SUBTRACT','DIVIDE','CONVERT'];
+  var sIds  = ['sC','sA','sSub','sD','sCv'];
+  var total = 0;
+  for (var i = 0; i < ops.length; i++) {
+    var n = countOps(ops[i]);
+    total += n;
+    setEl(sIds[i], n);
+  }
+  setEl('statTotal',   total);
+  setEl('statCompare', countOps('COMPARE'));
+  setEl('statAdd',     countOps('ADD'));
+  setEl('statErrors',  getHistory({ errored: true }).length);
+}
+
+function loadRecentRecords() {
+  var tb = document.getElementById('recentBody');
+  if (!tb) return;
+  var rows = getHistory().slice(0, 8);
+  renderTbody(tb, rows, 6);
+  renderSideHist(rows);
+}
+
+function renderSideHist(rows) {
+  var ul = document.getElementById('sideHist');
+  if (!ul) return;
+  if (!rows || !rows.length) {
+    ul.innerHTML = '<li class="h-item" style="color:var(--text3)">No records yet</li>';
+    return;
+  }
+  var html = '';
+  var limit = Math.min(rows.length, 5);
+  for (var i = 0; i < limit; i++) {
+    var r = rows[i];
+    html += '<li class="h-item">' +
+      '<span class="h-type">' + (r.operation || '—') + '</span>' +
+      '<span class="h-text">' + fmtVal(r.thisValue) + ' ' + (r.thisUnit || '') + ' → ' + (r.resultString || fmtVal(r.resultValue)) + ' ' + (r.resultUnit || '') + '</span>' +
+      '</li>';
+  }
+  ul.innerHTML = html;
+}
+
+/* ── CONVERTER ── */
+var curOp = 'compare';
+
+function selectOp(btn) {
+  document.querySelectorAll('.op-pill').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  curOp = btn.dataset.op;
+
+  var urlEl = document.getElementById('apiUrl');
+  var endpoint = ENDPOINTS[curOp] || ('/api/v1/quantities/' + curOp);
+  if (urlEl) urlEl.textContent = API_BASE + endpoint;
+
+  var v2wrap = document.getElementById('val2wrap');
+  var u2lbl  = document.getElementById('unit2lbl');
+  if (curOp === 'convert') {
+    if (v2wrap) v2wrap.style.display = 'none';
+    if (u2lbl)  u2lbl.innerHTML = '<i class="fas fa-tag"></i> Target Unit';
+  } else {
+    if (v2wrap) v2wrap.style.display = '';
+    if (u2lbl)  u2lbl.innerHTML = '<i class="fas fa-tag"></i> Unit 2';
+  }
+  var rb = document.getElementById('resultBox');
+  if (rb) rb.style.display = 'none';
+}
+
+function updateUnits() {
+  var measType = document.getElementById('measType');
+  var type = measType ? measType.value : 'LengthUnit';
+  var units = UNITS[type] || [];
+  ['unit1','unit2'].forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    for (var i = 0; i < units.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = units[i];
+      opt.textContent = units[i];
+      sel.appendChild(opt);
+    }
+  });
+  // Default unit2 to second option for convert (different units)
+  var u2 = document.getElementById('unit2');
+  if (u2 && u2.options.length > 1) u2.selectedIndex = 1;
+}
+
+function runOp() {
+  var v1el = document.getElementById('val1');
+  var u1el = document.getElementById('unit1');
+  var v2el = document.getElementById('val2');
+  var u2el = document.getElementById('unit2');
+  var type = (document.getElementById('measType') || {}).value || 'LengthUnit';
+
+  var v1 = parseFloat(v1el ? v1el.value : '');
+  var u1 = u1el ? u1el.value : '';
+  var v2 = parseFloat(v2el ? v2el.value : '');
+  var u2 = u2el ? u2el.value : '';
+
+  if (isNaN(v1)) { showToast('Please enter Value 1', 'error'); return; }
+  if (!u1)        { showToast('Please select Unit 1', 'error'); return; }
+  if (curOp !== 'convert') {
+    if (isNaN(v2)) { showToast('Please enter Value 2', 'error'); return; }
+    if (!u2)       { showToast('Please select Unit 2', 'error'); return; }
+  } else {
+    if (!u2) { showToast('Please select Target Unit', 'error'); return; }
+  }
+
+  var btn = document.getElementById('runBtn');
+  var txt = document.getElementById('runTxt');
+  if (btn) btn.disabled = true;
+  if (txt) txt.textContent = 'Running…';
+
+  var op = curOp.toUpperCase();
+  try {
+    var result = executeOperation(op, type, v1, u1, v2, u2);
+
+    // Save to history
+    var record = {
+      operation: op,
+      thisMeasurementType: type,
+      thisValue: v1,
+      thisUnit: u1,
+      thatValue: result.displayThatValue !== undefined ? result.displayThatValue : v2,
+      thatUnit: result.displayThatUnit || u2,
+      resultValue: result.resultValue,
+      resultUnit: result.resultUnit || '',
+      resultString: result.resultString || '',
+      isError: false,
+      errorMessage: '',
+      timestamp: new Date().toISOString()
+    };
+    pushHistory(record);
+
+    showResult(result, op, v1, u1, v2, u2, type);
+    showToast('✓ ' + result.resultString + ' saved to history', 'success');
+    loadStats();
+    renderSideHist(getHistory().slice(0, 5));
+  } catch(e) {
+    var msg = e.message || 'Calculation error';
+    var errRecord = {
+      operation: op, thisMeasurementType: type,
+      thisValue: v1, thisUnit: u1, thatValue: v2, thatUnit: u2,
+      resultValue: null, resultUnit: '', resultString: '',
+      isError: true, errorMessage: msg, timestamp: new Date().toISOString()
+    };
+    pushHistory(errRecord);
+    showToast(msg, 'error');
+    showResultErr(msg);
+    loadStats();
+  } finally {
+    if (btn) btn.disabled = false;
+    if (txt) txt.textContent = 'Execute';
+  }
+}
+
+function showResult(result, op, v1, u1, v2, u2, type) {
+  var box  = document.getElementById('resultBox');
+  var rval = document.getElementById('rVal');
+  var meta = document.getElementById('rMeta');
+  if (!box || !rval) return;
+  box.style.display = 'block';
+  box.classList.remove('error');
+  rval.style.color = '';
+
+  var disp;
+  if (op === 'COMPARE') {
+    disp = result.resultString === 'Equal' ? '✓ Equal' : '✗ Not Equal';
+  } else if (op === 'DIVIDE') {
+    disp = fmtVal(result.resultValue);
+  } else {
+    disp = fmtVal(result.resultValue) + (result.resultUnit ? ' ' + result.resultUnit : '');
+  }
+  rval.textContent = disp;
+  if (meta) {
+    if (op === 'CONVERT') {
+      meta.textContent = v1 + ' ' + u1 + '  =  ' + fmtVal(result.resultValue) + ' ' + u2 + '  (' + type + ')';
+    } else {
+      meta.textContent = v1 + ' ' + u1 + '  ' + op + '  ' + v2 + ' ' + u2 + '  →  ' + type;
+    }
+  }
+}
+
+function showResultErr(msg) {
+  var box  = document.getElementById('resultBox');
+  var rval = document.getElementById('rVal');
+  if (!box || !rval) return;
+  box.style.display = 'block';
+  box.classList.add('error');
+  rval.textContent = msg;
+  rval.style.color = 'var(--danger)';
+}
+
+/* ── HISTORY ── */
+function loadHistory() {
+  var tb   = document.getElementById('histBody');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="6" class="ec">Loading…</td></tr>';
+  var op   = (document.getElementById('hOpFilter')   || {}).value || '';
+  var type = (document.getElementById('hTypeFilter') || {}).value || '';
+  var rows;
+  if (type)    rows = getHistory({ type: type });
+  else if (op) rows = getHistory({ operation: op });
+  else         rows = getHistory();
+  renderTbody(tb, rows, 6);
+}
+
+function exportHistory() {
+  var rows = getHistory();
+  if (!rows.length) { showToast('No data to export', 'error'); return; }
+  var csv = 'Operation,Type,Value1,Unit1,Value2,Unit2,Result,ResultUnit,Status\n';
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    csv += [r.operation, r.thisMeasurementType, r.thisValue, r.thisUnit, r.thatValue, r.thatUnit, r.resultString || r.resultValue, r.resultUnit, r.isError ? 'Error' : 'OK'].join(',') + '\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'quantimeasure-history.csv';
+  a.click();
+  showToast('History exported!', 'success');
+}
+
+/* ── ERRORS ── */
+function loadErrors() {
+  var tb = document.getElementById('errBody');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="3" class="ec">Loading…</td></tr>';
+  var rows = getHistory({ errored: true });
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="3" class="ec">✅ No errors logged.</td></tr>';
+    return;
+  }
+  renderTbody(tb, rows, 3);
+}
+
+/* ── PROFILE ── */
+function loadProfile() {
+  var user    = getUser();
+  var name    = (user && user.username) ? user.username : 'User';
+  var role    = (user && user.role)     ? user.role     : 'Member';
+  var initial = name.charAt(0).toUpperCase();
+
+  setEl('profileName', name);
+  setEl('profileRole', role);
+  setEl('infoUsername', name);
+  setEl('infoRole', role);
+  var pa = document.getElementById('profileAvatar');
+  if (pa) pa.textContent = initial;
+
+  loadProfileStats();
+  loadRecentActivity();
+  checkConn();
+}
+
+function loadProfileStats() {
+  var ops  = ['COMPARE','ADD','SUBTRACT','DIVIDE','CONVERT'];
+  var ids  = ['pCompares','pAdd','pSub','pDiv','pConverts'];
+  var total = 0, maxOp = '', maxVal = 0;
+  for (var i = 0; i < ops.length; i++) {
+    var n = countOps(ops[i]);
+    total += n;
+    setEl(ids[i], n);
+    if (n > maxVal) { maxVal = n; maxOp = ops[i]; }
+  }
+  setEl('pTotalOps', total);
+  setEl('pMostUsed', maxOp || '—');
+  setEl('pErrors', getHistory({ errored: true }).length);
+}
+
+function loadRecentActivity() {
+  var ul = document.getElementById('recentActivity');
+  if (!ul) return;
+  var rows = getHistory().slice(0, 6);
+  if (!rows.length) {
+    ul.innerHTML = '<li class="h-item" style="color:var(--text3);padding:.5rem 0">No activity yet — use the Converter to get started!</li>';
+    return;
+  }
+  var opColors = { COMPARE:'#3b82f6', ADD:'#22c55e', SUBTRACT:'#8b5cf6', DIVIDE:'#f59e0b', CONVERT:'#60a5fa' };
+  var opIcons  = { COMPARE:'fas fa-equals', ADD:'fas fa-plus', SUBTRACT:'fas fa-minus', DIVIDE:'fas fa-divide', CONVERT:'fas fa-exchange-alt' };
+  var html = '';
+  for (var i = 0; i < rows.length; i++) {
+    var r   = rows[i];
+    var op  = (r.operation || 'COMPARE').toUpperCase();
+    var col = opColors[op] || '#3b82f6';
+    var ico = opIcons[op]  || 'fas fa-calculator';
+    html += '<li class="act-item">' +
+      '<div class="act-icon" style="background:' + col + '18;border:1px solid ' + col + '30;color:' + col + '"><i class="' + ico + '"></i></div>' +
+      '<div>' +
+        '<div class="act-text"><strong>' + op + '</strong> — ' + fmtVal(r.thisValue) + ' ' + (r.thisUnit || '') + ' → ' + fmtVal(r.thatValue) + ' ' + (r.thatUnit || '') + '</div>' +
+        '<div style="font-size:.72rem;color:var(--text3)">' + (r.thisMeasurementType || '—') + ' • Result: ' + (r.resultString || fmtVal(r.resultValue)) + ' ' + (r.resultUnit || '') + '</div>' +
+      '</div>' +
+      '<span class="act-time">#' + (i+1) + '</span>' +
+      '</li>';
+  }
+  ul.innerHTML = html;
+}
+
+/* ── PARTICLES ── */
+function initParticles() {
+  var c = document.getElementById('px');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  var pts = [];
+  for (var i = 0; i < 45; i++) {
+    pts.push({
+      x:  Math.random() * c.width,
+      y:  Math.random() * c.height,
+      r:  Math.random() * 1.5 + 0.4,
+      vx: Math.random() * 0.22 - 0.11,
+      vy: Math.random() * 0.22 - 0.11,
+      op: Math.random() * 0.25 + 0.05,
+      col: Math.random() > 0.5 ? 'blue' : 'purple'
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    var dark = document.documentElement.getAttribute('data-theme') !== 'light';
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.x = (p.x + p.vx + c.width)  % c.width;
+      p.y = (p.y + p.vy + c.height) % c.height;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      var alpha = dark ? p.op : p.op * 0.3;
+      ctx.fillStyle = p.col === 'blue'
+        ? 'rgba(59,130,246,' + alpha + ')'
+        : 'rgba(139,92,246,' + alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', function() {
+  if (!isAuth()) { window.location.href = 'auth.html'; return; }
+
+  var user    = getUser();
+  var name    = (user && user.username) ? user.username : 'User';
+  var initial = name.charAt(0).toUpperCase();
+
+  setEl('userName', name);
+  setEl('userDisplay', name);
+  var av = document.getElementById('avatarInitial');
+  if (av) av.textContent = initial;
+
+  initParticles();
+  updateUnits();
+  checkConn();
+  loadDashboard();
+});
+</script>
+</body>
+</html>
