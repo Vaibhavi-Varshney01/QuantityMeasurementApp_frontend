@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUser, useClerk } from '@clerk/clerk-react'
-import { useApi } from '../hooks/useApi'
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react'
+import { useApi, setClerkToken } from '../hooks/useApi'
 import ParticlesCanvas from './ParticlesCanvas'
 
 const OPS      = ['COMPARE','ADD','SUBTRACT','DIVIDE','CONVERT']
@@ -38,10 +38,10 @@ export default function Dashboard() {
   const [sec,   setSec]   = useState('dashboard')
   const [toast, setToast] = useState(null)
 
-  // ── Clerk replaces useAuth() ──
-  const { user }    = useUser()
-  const { signOut } = useClerk()
-  const navigate    = useNavigate()
+  const { user, isSignedIn } = useUser()
+  const { signOut }          = useClerk()
+  const { getToken }         = useAuth()
+  const navigate             = useNavigate()
 
   const displayName = user?.firstName || user?.username || user?.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'User'
   const avatarLetter = displayName[0]?.toUpperCase() || '?'
@@ -78,6 +78,15 @@ export default function Dashboard() {
   const [errRows, setErrRows] = useState([])
 
   const toast$ = (msg, type='success') => { setToast({ msg,type }); setTimeout(() => setToast(null), 3800) }
+
+  // Sync Clerk token to useApi
+  useEffect(() => {
+    if (isSignedIn) {
+      getToken().then(setClerkToken)
+    } else {
+      setClerkToken(null)
+    }
+  }, [getToken, isSignedIn])
 
   // Listen to navbar nav events
   useEffect(() => {
