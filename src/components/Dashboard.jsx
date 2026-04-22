@@ -48,7 +48,7 @@ export default function Dashboard() {
   const avatarLetter = displayName[0]?.toUpperCase() || '?'
 
   const {
-    history, loading, backendOk,
+    history, loading, backendOk, apiUrl,
     execute, getHistory, getErrors, getCounts,
     getHistoryByOp, getHistoryByType, getUnits,
     reload, checkBackend,
@@ -80,14 +80,28 @@ export default function Dashboard() {
 
   const toast$ = (msg, type='success') => { setToast({ msg,type }); setTimeout(() => setToast(null), 3800) }
 
+  const loadStats = useCallback(async () => {
+    try {
+      const [counts, errs] = await Promise.all([getCounts(), getErrors()])
+      const [c,a,s,d,cv]   = counts
+      setStats({ total:c+a+s+d+cv, compare:c, add:a, errors:errs.length })
+      setOpStats({ sC:c, sA:a, sSub:s, sD:d, sCv:cv })
+    } catch {}
+  }, [getCounts, getErrors])
+
   // Sync Clerk token to useApi
   useEffect(() => {
     if (isSignedIn) {
-      getToken().then(setClerkToken)
+      getToken().then(t => {
+        setClerkToken(t)
+        // Force a reload once we have the token
+        reload()
+        loadStats()
+      })
     } else {
       setClerkToken(null)
     }
-  }, [getToken, isSignedIn])
+  }, [getToken, isSignedIn, reload, loadStats])
 
   // Listen to navbar nav events
   useEffect(() => {
@@ -108,15 +122,6 @@ export default function Dashboard() {
     const u = getUnits(measType)
     setUnitList(u); setUnit1(u[0]||''); setUnit2(u[1]||u[0]||'')
   }, [measType, getUnits])
-
-  const loadStats = useCallback(async () => {
-    try {
-      const [counts, errs] = await Promise.all([getCounts(OPS), getErrors()])
-      const [c,a,s,d,cv]   = counts
-      setStats({ total:c+a+s+d+cv, compare:c, add:a, errors:errs.length })
-      setOpStats({ sC:c, sA:a, sSub:s, sD:d, sCv:cv })
-    } catch {}
-  }, [getCounts, getErrors])
 
   useEffect(() => { loadStats() }, [loadStats, sec])
 
@@ -242,7 +247,7 @@ export default function Dashboard() {
           </div>
           <div style={{ marginTop:'1.5rem', padding:'.65rem .75rem', borderRadius:9, background:`${connColor}10`, border:`1px solid ${connColor}30` }}>
             <div style={{ fontSize:'.72rem', fontWeight:800, color:connColor }}>{connLabel}</div>
-            <div style={{ fontSize:'.64rem', color:'var(--text3)', marginTop:'.15rem' }}>localhost:5207</div>
+            <div style={{ fontSize:'.64rem', color:'var(--text3)', marginTop:'.15rem', wordBreak: 'break-all' }}>{apiUrl.replace(/^https?:\/\//, '')}</div>
           </div>
         </div>
       </aside>
@@ -322,7 +327,7 @@ export default function Dashboard() {
                       <button key={op} className={`op-pill ${curOp===op?'active':''}`} onClick={() => { setCurOp(op); setResult(null); setResErr('') }}>{label}</button>
                     ))}
                   </div>
-                  <div className="api-bar"><span className="method">POST</span><span>localhost:5207/api/v1/quantities/{curOp}</span></div>
+                  <div className="api-bar"><span className="method">POST</span><span>{apiUrl.replace(/^https?:\/\//, '')}/api/v1/quantities/{curOp}</span></div>
                   <div className="fg">
                     <label><i className="fas fa-ruler" style={{ color:'#3b82f6',marginRight:'.28rem',fontSize:'.75rem' }}></i> Measurement Type</label>
                     <select className="inp" value={measType} onChange={e => setMeasType(e.target.value)}>

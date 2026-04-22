@@ -53,11 +53,9 @@ const EP = {
   divide: '/api/v1/quantities/divide',
   convert: '/api/v1/quantities/convert',
   history: '/api/v1/quantities/history',
-  histOp: (op) => `/api/v1/quantities/history/operation/${op}`,
-  histType: (type) => `/api/v1/quantities/history/type/${type}`,
-  errored: '/api/v1/quantities/history/errored',
-  count: (op) => `/api/v1/quantities/count/${op}`,
-  health: '/actuator/health',
+  errored: '/api/v1/quantities/history/errors',
+  counts: '/api/v1/quantities/counts',
+  health: '/health',
 }
 
 // NOTE: With Clerk, pass the Clerk session token instead of old JWT.
@@ -99,27 +97,39 @@ export function useApi() {
 
   const checkBackend = useCallback(async () => {
     try {
+      // We try the health endpoint, but any response from the server means it's "Online"
       const r = await fetch(API_BASE + EP.health)
-      setBackendOk(r.ok)
-      return r.ok
-    } catch { setBackendOk(false); return false }
+      // Even if /health is 404, the server responded, so it's not "Offline"
+      const isAlive = r.status < 500 || r.status === 404 
+      setBackendOk(isAlive)
+      return isAlive
+    } catch (err) {
+      console.error('Backend check failed:', err)
+      setBackendOk(false)
+      return false
+    }
   }, [])
 
   const reload = useCallback(async () => {
+    // If no token, don't even try history (it will 401)
+    if (!_clerkToken) {
+      setHistory([])
+      return
+    }
     try {
       const res = await req(EP.history)
       const rows = unwrap(res)
       setHistory(Array.isArray(rows) ? rows : [])
-    } catch {
-      try {
-        const res = await req(EP.histOp(''))
-        const rows = unwrap(res)
-        setHistory(Array.isArray(rows) ? rows : [])
-      } catch { setHistory([]) }
+    } catch (err) {
+      console.error('Failed to reload history:', err)
+      setHistory([])
     }
   }, [])
 
-  useEffect(() => { checkBackend(); reload() }, [checkBackend, reload])
+  useEffect(() => { 
+    checkBackend()
+    if (_clerkToken) reload() 
+  }, [checkBackend, reload])
 
   const execute = useCallback(async (operation, type, v1, u1, v2, u2) => {
     setLoading(true)
@@ -147,6 +157,7 @@ export function useApi() {
   }, [history])
 
   const getErrors = useCallback(async () => {
+    if (!_clerkToken) return history.filter(r => r.isError)
     try {
       const res = await req(EP.errored)
       const rows = unwrap(res)
@@ -154,30 +165,29 @@ export function useApi() {
     } catch { return history.filter(r => r.isError) }
   }, [history])
 
-  const getCounts = useCallback(async (ops = []) => {
-    return Promise.all(
-      ops.map(op =>
-        req(EP.count(op))
-          .then(r => { const v = unwrap(r); return typeof v === 'number' ? v : (v?.count ?? 0) })
-          .catch(() => 0)
-      )
-    )
+  const getCounts = useCallback(async () => {
+    if (!_clerkToken) return [0, 0, 0, 0, 0]
+    try {
+      const res = await req(EP.counts)
+      const counts = unwrap(res)
+      return Array.isArray(counts) ? counts : [0, 0, 0, 0, 0]
+    } catch { return [0, 0, 0, 0, 0] }
   }, [])
 
   const getHistoryByOp = useCallback(async (op) => {
-    try { const r = await req(EP.histOp(op)); const rows = unwrap(r); return Array.isArray(rows) ? rows : [] }
-    catch { return [] }
-  }, [])
+    // Controller doesn't have specific Op endpoint, so filter local history
+    return history.filter(r => (r.operation || '').toUpperCase() === op.toUpperCase())
+  }, [history])
 
   const getHistoryByType = useCallback(async (type) => {
-    try { const r = await req(EP.histType(type)); const rows = unwrap(r); return Array.isArray(rows) ? rows : [] }
-    catch { return [] }
-  }, [])
+    // Controller doesn't have specific Type endpoint, so filter local history
+    return history.filter(r => r.thisMeasurementType === type)
+  }, [history])
 
   const getUnits = useCallback((type) => UNITS[type] || [], [])
 
   return {
-    history, loading, backendOk,
+    history, loading, backendOk, apiUrl: API_BASE,
     execute, getHistory, getErrors, getCounts,
     getHistoryByOp, getHistoryByType, getUnits,
     reload, checkBackend,
