@@ -37,6 +37,7 @@ function Toast({ t }) {
 export default function Dashboard() {
   const [sec,   setSec]   = useState('dashboard')
   const [toast, setToast] = useState(null)
+  const [showSidebar, setShowSidebar] = useState(false)
 
   const { user, isSignedIn } = useUser()
   const { signOut }          = useClerk()
@@ -90,9 +91,16 @@ export default function Dashboard() {
 
   // Listen to navbar nav events
   useEffect(() => {
-    const h = e => setSec(e.detail)
+    const h = e => { setSec(e.detail); setShowSidebar(false) }
     window.addEventListener('qm-nav', h)
     return () => window.removeEventListener('qm-nav', h)
+  }, [])
+
+  // Listen to sidebar toggle
+  useEffect(() => {
+    const h = () => setShowSidebar(s => !s)
+    window.addEventListener('qm-toggle-sidebar', h)
+    return () => window.removeEventListener('qm-toggle-sidebar', h)
   }, [])
 
   // Update unit list when measType changes
@@ -204,15 +212,16 @@ export default function Dashboard() {
         <ParticlesCanvas />
       </div>
 
-      {/* SIDEBAR */}
-      <aside className="sidebar-desktop" style={{ width:220, flexShrink:0, background:'var(--nav-bg)', borderRight:'1px solid var(--border)', position:'sticky', top:70, height:'calc(100vh - 70px)', overflowY:'auto', backdropFilter:'blur(20px)', zIndex:10 }}>
+      {/* SIDEBAR DRAWER */}
+      <div className={`sidebar-backdrop ${showSidebar ? 'show' : ''}`} onClick={() => setShowSidebar(false)} />
+      <aside className={`sidebar-drawer ${showSidebar ? 'open' : ''}`}>
         <div style={{ padding:'1.2rem .7rem' }}>
           <div style={{ marginBottom:'1.4rem' }}>
             <span className="sb-label">Navigation</span>
             <ul style={{ listStyle:'none', padding:0 }}>
               {navItems.map(([id,icon,label]) => (
                 <li key={id}>
-                  <button className={`sb-link ${sec===id?'active':''}`} onClick={() => setSec(id)}>
+                  <button className={`sb-link ${sec===id?'active':''}`} onClick={() => { setSec(id); setShowSidebar(false) }}>
                     <i className={icon}></i> {label}
                   </button>
                 </li>
@@ -222,7 +231,7 @@ export default function Dashboard() {
           <div>
             <span className="sb-label">Account</span>
             <ul style={{ listStyle:'none', padding:0 }}>
-              <li><button className={`sb-link ${sec==='profile'?'active':''}`} onClick={() => setSec('profile')}><i className="fas fa-user-circle"></i> My Profile</button></li>
+              <li><button className={`sb-link ${sec==='profile'?'active':''}`} onClick={() => { setSec('profile'); setShowSidebar(false) }}><i className="fas fa-user-circle"></i> My Profile</button></li>
               <li><a href="/" className="sb-link"><i className="fas fa-home"></i> Home Page</a></li>
               <li>
                 <button className="sb-link" onClick={handleSignOut} style={{ color:'#f87171' }}>

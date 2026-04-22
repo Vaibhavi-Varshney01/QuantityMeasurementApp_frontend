@@ -40,7 +40,14 @@ export default function Navbar() {
 
   return (
     <nav className="nav-fixed">
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', height: '100%', gap: '2rem' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', height: '100%', gap: '1.5rem' }}>
+
+        {/* Toggle (Dashboard only) */}
+        {isDash && (
+          <button className="menu-toggle" onClick={() => window.dispatchEvent(new CustomEvent('qm-toggle-sidebar'))} title="Toggle Menu">
+            <i className="fas fa-bars"></i>
+          </button>
+        )}
 
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '.5rem', textDecoration: 'none', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)', flexShrink: 0 }}>
@@ -59,22 +66,8 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Dashboard nav links */}
-        {isDash && (
-          <div className="nav-links-desktop" style={{ display: 'flex', gap: '.1rem' }}>
-            {[
-              ['dashboard', 'fas fa-gauge-high',         'Dashboard'],
-              ['converter', 'fas fa-exchange-alt',        'Converter'],
-              ['history',   'fas fa-history',             'History'],
-              ['errors',    'fas fa-triangle-exclamation','Errors'],
-              ['profile',   'fas fa-user-circle',         'Profile'],
-            ].map(([id, icon, label]) => (
-              <button key={id} className="nl" onClick={() => navTo(id)}>
-                <i className={icon}></i> {label}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Dashboard nav links — Hidden in favor of hamburger drawer */}
+
 
         {/* Right side */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '.6rem' }}>
